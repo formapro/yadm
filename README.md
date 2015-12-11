@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/makasim/values.png?branch=master)](https://travis-ci.org/makasim/yadm)
 
-It gives you the fastest hydration and persistent. The easiest solution for building aggregation roots or objects trees.
+The schema less ODM. It gives you the fastest hydration and persistent. The easiest solution for building aggregation roots or objects trees.
 
 This approach tries to gather the best from arrays and objects.
 
