@@ -1,2 +1,2 @@
-# yadm
-MongoDB ODM.
+# Yadm is a MongoDB ODM.
+
