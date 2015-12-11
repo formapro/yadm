@@ -42,7 +42,7 @@ class Order implements Persistable
 $collection = (new Client())->selectCollection('acme_demo', 'orders');
 $hydrator = new Hydrator(Order::class);
 
-$storage = new \Storage($collection, $hydrator)
+$storage = new Storage($collection, $hydrator)
 ```
 
 Insert a model:
