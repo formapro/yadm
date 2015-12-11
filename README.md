@@ -28,6 +28,11 @@ class Order implements Persistable
     use ObjectsTrait; // If you are not going to use sub objects you can remove it.
     use PersistableTrait;
 
+    public function getId()
+    {
+        return $this->values['_id'];
+    }
+
     public function getNumber()
     {
         return $this->getValue('self', 'number');
@@ -84,7 +89,7 @@ $order->setNumber(1234);
 
 $storage->insert($order);
 
-$storage->findOne(['_id' => new ObjectID(\Makasim\Yadm\get_values($order)['_id'])]);
+$storage->findOne(['_id' => new ObjectID($order->getId())]);
 ```
 
 Hydrate a model:
