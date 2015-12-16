@@ -2,7 +2,7 @@
 {
   "name": "makasim/yadm",
   "type": "library",
-  "description": "MongoDB ODM.",
+  "description": "Yadm is a MongoDB ODM. Schema less. Fast object hydration and persistence.",
   "keywords": ["model", "mongodb"],
   "license": "MIT",
   "authors": [
