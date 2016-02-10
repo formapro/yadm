@@ -6,7 +6,7 @@ class Repository
     /**
      * @var Storage
      */
-    private $storage;
+    protected $storage;
 
     /**
      * @param Storage $storage
