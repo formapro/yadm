@@ -1,8 +1,6 @@
 <?php
 namespace Makasim\Yadm;
 
-use MongoDB\BSON\Persistable;
-
 class Hydrator
 {
     /**
@@ -24,7 +22,7 @@ class Hydrator
     }
 
     /**
-     * @return Persistable|object
+     * @return object
      */
     public function create()
     {
@@ -38,24 +36,21 @@ class Hydrator
     }
 
     /**
-     * @param array|object $bson
+     * @param array $values
      *
-     * @param Persistable|null $model
+     * @param object|null $model
      *
-     * @return Persistable|object
+     * @return object
      */
-    public function hydrate(array $bson, Persistable $model = null)
+    public function hydrate(array $values, $model = null)
     {
         $model = $model ?: $this->create();
-        if (false == $model instanceof  Persistable) {
-            throw new \LogicException(sprintf('The model %s must implement %s interface', $this->modelClass, Persistable::class));
+
+        if (isset($values['_id'])) {
+            $values['_id'] = (string) $values['_id'];
         }
 
-        if (isset($bson['_id'])) {
-            $bson['_id'] = (string) $bson['_id'];
-        }
-
-        $model->bsonUnserialize($bson);
+        set_values($model, $values);
 
         return $model;
     }

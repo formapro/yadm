@@ -1,5 +1,6 @@
 <?php
 namespace Makasim\Yadm;
+use MongoDB\BSON\ObjectID;
 
 /**
  * @param object $object
@@ -91,4 +92,31 @@ function clone_object($object)
     $values = get_values($object);
 
     return build_object(get_class($object), $values);
+}
+
+/**
+ * @param object $object
+ *
+ * @return string
+ */
+function get_object_id($object)
+{
+    $function = \Closure::bind(function ($object) {
+        return (string) isset($object->values['_id']) ? $object->values['_id'] : null;
+    }, null, $object);
+
+    return $function($object);
+}
+
+/**
+ * @param object          $object
+ * @param ObjectID|string $objectId
+ */
+function set_object_id($object, $objectId)
+{
+    $function = \Closure::bind(function ($object) use ($objectId) {
+        $object->values['_id'] = (string) $objectId;
+    }, null, $object);
+
+    return $function($object);
 }

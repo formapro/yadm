@@ -2,7 +2,6 @@
 namespace Makasim\Yadm;
 
 use MongoDB\BSON\ObjectID;
-use MongoDB\BSON\Persistable;
 use MongoDB\Collection;
 
 class Storage
@@ -35,7 +34,7 @@ class Storage
     }
 
     /**
-     * @return Persistable
+     * @return object
      */
     public function create()
     {
@@ -43,41 +42,43 @@ class Storage
     }
 
     /**
-     * @param Persistable $model
-     * @param array       $options
+     * @param object $model
+     * @param array  $options
      *
      * @return \MongoDB\InsertOneResult
      */
-    public function insert(Persistable $model, array $options = [])
+    public function insert($model, array $options = [])
     {
-        $bson = $model->bsonSerialize();
+        $values = get_values($model);
 
-        $result = $this->collection->insertOne($bson, $options);
+        $result = $this->collection->insertOne($values, $options);
         if (false == $result->isAcknowledged()) {
             throw new \LogicException('Operation is not acknowledged');
         }
 
-        $bson['_id'] = (string) $result->getInsertedId();
-
-        $this->hydrator->hydrate($bson, $model);
+        $this->hydrator->hydrate($values, $model);
+        set_object_id($model, $result->getInsertedId());
 
         return $result;
     }
 
     /**
-     * @param Persistable $model
-     * @param array       $options
+     * @param object     $model
+     * @param null|array $filter
+     * @param array      $options
      *
      * @return \MongoDB\UpdateResult
      */
-    public function update(Persistable $model, array $options = [])
+    public function update($model, $filter = null, array $options = [])
     {
-        $bson = $model->bsonSerialize();
+        if (null === $filter) {
+            $filter = ['_id' => new ObjectID(get_object_id($model))];
+        }
 
-        $modelId = $bson['_id'];
-        unset($bson['_id']);
+        $values = get_values($model);
+        unset($values['_id']);
 
-        $result = $this->collection->updateOne(['_id' => new ObjectID($modelId)], ['$set' => $bson], $options);
+        $result = $this->collection->updateOne($filter, ['$set' => $values], $options);
         if (false == $result->isAcknowledged()) {
             throw new \LogicException('Operation is not acknowledged');
         }
@@ -86,22 +87,16 @@ class Storage
     }
 
     /**
-     * @param Persistable $model
-     * @param array       $options
+     * @param object $model
+     * @param array  $options
      *
      * @return \MongoDB\DeleteResult
      */
-    public function delete(Persistable $model, array $options = [])
+    public function delete($model, array $options = [])
     {
-        $bson = $model->bsonSerialize();
-
-        if (is_array($bson)) {
-            $modelId = $bson['_id'];
-            unset($bson['_id']);
-        } else {
-            $modelId = $bson->_id;
-            unset($bson->_id);
-        }
+        $modelId = get_object_id($model);
+        $values = get_values($model);
+        unset($values['_id']);
 
         $result = $this->collection->deleteOne(['_id' => new ObjectID($modelId)], $options);
         if (false == $result->isAcknowledged()) {
@@ -115,14 +110,14 @@ class Storage
      * @param array $filter
      * @param array $options
      *
-     * @return Persistable
+     * @return object
      */
     public function findOne(array $filter = [], array $options = [])
     {
         $options['typeMap'] = ['root' => 'array', 'document' => 'array', 'array' => 'array'];
 
-        if ($bson = $this->collection->findOne($filter, $options)) {
-            return $this->hydrator->hydrate($bson);
+        if ($values = $this->collection->findOne($filter, $options)) {
+            return $this->hydrator->hydrate($values);
         }
     }
 
@@ -130,14 +125,16 @@ class Storage
      * @param array $filter
      * @param array $options
      *
-     * @return Iterator
+     * @return \Traversable
      */
     public function find(array $filter = [], array $options = [])
     {
         $cursor = $this->collection->find($filter, $options);
         $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
 
-        return new Iterator($cursor, $this->hydrator);
+        foreach ($cursor as $values) {
+            yield $this->hydrator->hydrate($values);
+        }
     }
 
     /**
@@ -152,7 +149,7 @@ class Storage
 
         $this->pessimisticLock->lock($id);
         try {
-            if ($model = $this->findOne(['_id' => (string) $id])) {
+            if ($model = $this->findOne(['_id' => new ObjectID((string) $id)])) {
                 call_user_func($lockCallback, $model, $this);
             }
         } finally {
