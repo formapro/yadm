@@ -15,18 +15,15 @@ namespace Acme;
 
 use Makasim\Yadm\ValuesTrait;
 use Makasim\Yadm\ObjectsTrait;
-use Makasim\Yadm\PersistableTrait;
 use Makasim\Yadm\Storage;
 use Makasim\Yadm\Hydrator;
 use MongoDB\Client;
 use MongoDB\BSON\ObjectID;
-use MongoDB\BSON\Persistable;
 
-class Order implements Persistable
+class Order
 {
     use ValuesTrait;
     use ObjectsTrait; // If you are not going to use sub objects you can remove it.
-    use PersistableTrait;
 
     public function getId()
     {
