@@ -2,7 +2,6 @@
 namespace Makasim\Yadm\Tests\Functional;
 
 use Makasim\Yadm\Hydrator;
-use Makasim\Yadm\Iterator;
 use Makasim\Yadm\PessimisticLock;
 use Makasim\Yadm\Storage;
 use MongoDB\BSON\ObjectID;
@@ -22,7 +21,7 @@ class StorageTest extends FunctionalTest
         $model = $storage->create();
 
         $this->assertInstanceOf(Model::class, $model);
-        $this->assertEquals([], $model->data);
+        $this->assertEquals([], $model->values);
     }
 
     public function testInsertModel()
@@ -33,21 +32,21 @@ class StorageTest extends FunctionalTest
         $storage = new Storage($collection, $hydrator);
 
         $model = new Model();
-        $model->data = ['foo' => 'fooVal', 'bar' => 'barVal', 'ololo' => ['foo', 'foo' => 'fooVal']];
+        $model->values = ['foo' => 'fooVal', 'bar' => 'barVal', 'ololo' => ['foo', 'foo' => 'fooVal']];
 
         $result = $storage->insert($model);
 
         $this->assertInstanceOf(InsertOneResult::class, $result);
         $this->assertTrue($result->isAcknowledged());
 
-        $this->assertArrayHasKey('_id', $model->data);
-        $this->assertNotEmpty($model->data['_id']);
-        $this->assertInternalType('string', $model->data['_id']);
+        $this->assertArrayHasKey('_id', $model->values);
+        $this->assertNotEmpty($model->values['_id']);
+        $this->assertInternalType('string', $model->values['_id']);
 
-        $foundModel = $storage->findOne(['_id' => new ObjectID($model->data['_id'])]);
+        $foundModel = $storage->findOne(['_id' => new ObjectID($model->values['_id'])]);
 
         $this->assertInstanceOf(Model::class, $foundModel);
-        $this->assertEquals($model->data, $foundModel->data);
+        $this->assertEquals($model->values, $foundModel->values);
     }
 
     public function testUpdateModel()
@@ -58,24 +57,24 @@ class StorageTest extends FunctionalTest
         $storage = new Storage($collection, $hydrator);
 
         $model = new Model();
-        $model->data = ['foo' => 'fooVal', 'bar' => 'barVal'];
+        $model->values = ['foo' => 'fooVal', 'bar' => 'barVal'];
 
         $result = $storage->insert($model);
 
         //guard
         $this->assertTrue($result->isAcknowledged());
 
-        $model->data['ololo'] = 'ololoVal';
+        $model->values['ololo'] = 'ololoVal';
 
         $result = $storage->update($model);
 
         //guard
         $this->assertTrue($result->isAcknowledged());
 
-        $foundModel = $storage->findOne(['_id' => new ObjectID($model->data['_id'])]);
+        $foundModel = $storage->findOne(['_id' => new ObjectID($model->values['_id'])]);
 
         $this->assertInstanceOf(Model::class, $foundModel);
-        $this->assertEquals($model->data, $foundModel->data);
+        $this->assertEquals($model->values, $foundModel->values);
     }
 
     public function testDeleteModel()
@@ -86,7 +85,7 @@ class StorageTest extends FunctionalTest
         $storage = new Storage($collection, $hydrator);
 
         $model = new Model();
-        $model->data = ['foo' => 'fooVal', 'bar' => 'barVal'];
+        $model->values = ['foo' => 'fooVal', 'bar' => 'barVal'];
 
         $result = $storage->insert($model);
 
@@ -98,7 +97,7 @@ class StorageTest extends FunctionalTest
         //guard
         $this->assertTrue($result->isAcknowledged());
 
-        $this->assertNull($storage->findOne(['_id' => new ObjectID($model->data['_id'])]));
+        $this->assertNull($storage->findOne(['_id' => new ObjectID($model->values['_id'])]));
     }
 
     public function testUpdateModelPessimisticLock()
@@ -113,20 +112,20 @@ class StorageTest extends FunctionalTest
         $storage = new Storage($collection, $hydrator, $pessimisticLock);
 
         $model = new Model();
-        $model->data = ['foo' => 'fooVal', 'bar' => 'barVal'];
+        $model->values = ['foo' => 'fooVal', 'bar' => 'barVal'];
 
         $result = $storage->insert($model);
 
         //guard
         $this->assertTrue($result->isAcknowledged());
 
-        $storage->lock($model->data['_id'], function($lockedModel, $storage) use ($model) {
+        $storage->lock($model->values['_id'], function($lockedModel, $storage) use ($model) {
             $this->assertInstanceOf(Model::class, $lockedModel);
-            $this->assertEquals($model->data, $lockedModel->data);
+            $this->assertEquals($model->values, $lockedModel->values);
 
             $this->assertInstanceOf(Storage::class, $storage);
 
-            $model->data['ololo'] = 'ololoVal';
+            $model->values['ololo'] = 'ololoVal';
 
             $result = $storage->update($model);
 
@@ -134,10 +133,10 @@ class StorageTest extends FunctionalTest
             $this->assertTrue($result->isAcknowledged());
         });
 
-        $foundModel = $storage->findOne(['_id' => new ObjectID($model->data['_id'])]);
+        $foundModel = $storage->findOne(['_id' => new ObjectID($model->values['_id'])]);
 
         $this->assertInstanceOf(Model::class, $foundModel);
-        $this->assertEquals($model->data, $foundModel->data);
+        $this->assertEquals($model->values, $foundModel->values);
     }
 
     public function testFindModels()
@@ -149,7 +148,7 @@ class StorageTest extends FunctionalTest
 
         $result = $storage->find([]);
 
-        $this->assertInstanceOf(Iterator::class, $result);
+        $this->assertInstanceOf(\Traversable::class, $result);
         $this->assertCount(0, iterator_to_array($result));
 
         $storage->insert(new Model());
@@ -158,7 +157,7 @@ class StorageTest extends FunctionalTest
 
         $result = $storage->find([]);
 
-        $this->assertInstanceOf(Iterator::class, $result);
+        $this->assertInstanceOf(\Traversable::class, $result);
         $data = iterator_to_array($result);
 
         $this->assertCount(3, $data);
@@ -166,17 +165,7 @@ class StorageTest extends FunctionalTest
     }
 }
 
-class Model implements Persistable
+class Model
 {
-    public $data = [];
-
-    public function bsonSerialize()
-    {
-        return $this->data;
-    }
-
-    public function bsonUnserialize(array $data = array())
-    {
-        $this->data = $data;
-    }
+    public $values = [];
 }

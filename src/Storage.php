@@ -49,7 +49,7 @@ class Storage
      */
     public function insert($model, array $options = [])
     {
-        $values = get_values($model);
+        $values = get_object_values($model);
 
         $result = $this->collection->insertOne($values, $options);
         if (false == $result->isAcknowledged()) {
@@ -75,7 +75,7 @@ class Storage
             $filter = ['_id' => new ObjectID(get_object_id($model))];
         }
 
-        $values = get_values($model);
+        $values = get_object_values($model);
         unset($values['_id']);
 
         $result = $this->collection->updateOne($filter, ['$set' => $values], $options);
@@ -95,7 +95,7 @@ class Storage
     public function delete($model, array $options = [])
     {
         $modelId = get_object_id($model);
-        $values = get_values($model);
+        $values = get_object_values($model);
         unset($values['_id']);
 
         $result = $this->collection->deleteOne(['_id' => new ObjectID($modelId)], $options);
