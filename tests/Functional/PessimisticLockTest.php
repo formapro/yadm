@@ -27,7 +27,7 @@ class PessimisticLockTest extends FunctionalTest
 
     /**
      * @expectedException \RuntimeException
-     * @expectedExceptionMessage Cannot obtain the lock for id "5669dd8f56c02c4628031635". Timeout after 3 seconds
+     * @expectedExceptionMessage Cannot obtain the lock for id "5669dd8f56c02c4628031635". Timeout after 2 seconds
      */
     public function testWaitForLockIsNotReleased()
     {

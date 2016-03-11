@@ -30,17 +30,17 @@ class Order implements Persistable
 
     public function getId()
     {
-        return $this->values['_id'];
+        return \Makasim\Yadm\get_object_id($this);
     }
 
     public function getNumber()
     {
-        return $this->getValue('self', 'number');
+        return $this->getValue('number');
     }
 
     public function setNumber($number)
     {
-        $this->setValue('self', 'number', $number);
+        $this->setValue('number', $number);
     }
 }
 
@@ -113,9 +113,9 @@ Set custom values:
 
 $order = new Order;
 
-$order->setValue('subscription', 'id', 123);
-$order->setValue('subscription', 'deliveryDate', '2015-10-10');
-$order->setValue('fortnox', 'invoiceNumber', 543);
+$order->setValue('subscription.id', 123);
+$order->setValue('subscription.deliveryDate', '2015-10-10');
+$order->setValue('fortnox.invoiceNumber', 543);
 ```
 
 # Objects
@@ -134,12 +134,12 @@ class Order
 
     public function getPrice()
     {
-        return $this->getObject('self', 'price', Price::class);
+        return $this->getObject('price', Price::class);
     }
 
     public function setPrice(Price $price = null)
     {
-        $this->setObject('self', 'price', $price);
+        $this->setObject('price', $price);
     }
 }
 
@@ -149,12 +149,12 @@ class Price
 
     public function getAmount()
     {
-        return $this->getValue('self', 'amount', null, 'int');
+        return $this->getValue('amount', null, 'int');
     }
 
     public function setAmount($amount)
     {
-        $this->setValue('self', 'amount', $amount);
+        $this->setValue('amount', $amount);
     }
 }
 ```

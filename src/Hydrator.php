@@ -50,7 +50,7 @@ class Hydrator
             $values['_id'] = (string) $values['_id'];
         }
 
-        set_values($model, $values);
+        set_object_values($model, $values);
 
         return $model;
     }

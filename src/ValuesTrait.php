@@ -15,31 +15,9 @@ trait ValuesTrait
 
     /**
      * @param string $key
-     * @param mixed  $value
-     */
-    protected function setSelfValue($key, $value)
-    {
-        $this->setValue('self', $key, $value);
-    }
-
-    /**
-     * @param string $key
-     * @param mixed  $default
-     * @param string $castTo
-     *
-     * @return mixed
-     */
-    protected function getSelfValue($key, $default = null, $castTo = null)
-    {
-        return $this->getValue('self', $key, $default, $castTo);
-    }
-
-    /**
-     * @param string $namespace
-     * @param string $key
      * @param string $value
      */
-    protected function addValue($namespace, $key, $value)
+    protected function addValue($key, $value)
     {
         if ($value instanceof \DateTime) {
             $value = [
@@ -48,22 +26,21 @@ trait ValuesTrait
             ];
         }
 
-        $currentValue = $this->getValue($namespace, $key, []);
+        $currentValue = $this->getValue($key, []);
         if (false == is_array($currentValue)) {
-            throw new \LogicException(sprintf('Cannot set value to %s.%s it is already set and not array', $namespace, $key));
+            throw new \LogicException(sprintf('Cannot set value to %s it is already set and not array', $key));
         }
 
         $currentValue[] = $value;
 
-        $this->setValue($namespace, $key, $currentValue);
+        $this->setValue($key, $currentValue);
     }
 
     /**
-     * @param string $namespace
      * @param string $key
      * @param string $value
      */
-    protected function setValue($namespace, $key, $value)
+    protected function setValue($key, $value)
     {
         if ($value instanceof \DateTime) {
             $value = [
@@ -72,34 +49,23 @@ trait ValuesTrait
             ];
         }
 
-        if (null !== $value) {
-            $this->values[$namespace][$key] = $value;
-        } else {
-            unset($this->values[$namespace][$key]);
-        }
-
-        $this->changedValues[$namespace][$key] = $value;
+        set_value($key, $value, $this->values, $this->changedValues);
 
         if (property_exists($this, 'objects')) {
-            unset($this->objects[$namespace][$key]);
+            unset_value($key, $this->objects);
         }
     }
 
     /**
-     * @param string $namespace
      * @param string $key
      * @param mixed  $default
      * @param string $castTo
      *
      * @return mixed
      */
-    protected function getValue($namespace, $key, $default = null, $castTo = null)
+    protected function getValue($key, $default = null, $castTo = null)
     {
-        if (false == array_key_exists($namespace, $this->values) || false == array_key_exists($key, $this->values[$namespace])) {
-            return $default;
-        }
-
-        $value = $this->values[$namespace][$key];
+        $value = get_value($key, $default , $this->values);
 
         if ('date' == $castTo) {
             if (is_numeric($value)) {

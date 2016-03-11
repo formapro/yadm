@@ -18,183 +18,107 @@ trait ObjectsTrait
     protected $objectBuilder;
 
     /**
-     * @param string      $key
-     * @param object|null $object
-     */
-    protected function setSelfObject($key, $object)
-    {
-        $this->setObject('self', $key, $object);
-    }
-
-    /**
-     * @param string          $key
-     * @param string|\Closure $classOrClosure
-     *
-     * @return object
-     */
-    protected function getSelfObject($key, $classOrClosure)
-    {
-        return $this->getObject('self', $key, $classOrClosure);
-    }
-
-    /**
-     * @param string   $key
-     * @param object[] $objects
-     */
-    protected function setSelfObjects($key, $objects)
-    {
-        $this->setObjects('self', $key, $objects);
-    }
-
-    /**
-     * @param string          $key
-     * @param string|\Closure $classOrClosure
-     *
-     * @return object[]
-     */
-    protected function getSelfObjects($key, $classOrClosure)
-    {
-        return $this->getObjects('self', $key, $classOrClosure);
-    }
-
-    /**
-     * @param string $key
-     * @param object $object
-     */
-    protected function addSelfObject($key, $object)
-    {
-        $this->addObject('self', $key, $object);
-    }
-
-
-    /**
-     * @internal
-     *
-     * @param string $namespace
      * @param string $key
      * @param $classOrClosure
      *
-     * @return object
-     *
+     * @return object|null
      */
-    protected function getObject($namespace, $key, $classOrClosure)
+    protected function getObject($key, $classOrClosure)
     {
-        if (false == isset($this->values[$namespace][$key])) {
-            return;
+        if (false == $object = get_value($key, null, $this->objects)) {
+            $values =& get_value($key, null, $this->values);
+            if (null === $values) {
+                return;
+            }
+
+            $object = build_object($classOrClosure, $values, $this->objectBuilder);
+
+            set_value($key, $object, $this->objects);
         }
 
-        if (false == isset($this->objects[$namespace][$key])) {
-            $this->objects[$namespace][$key] = build_object(
-                $classOrClosure,
-                $this->values[$namespace][$key],
-                $this->objectBuilder
-            );
-        }
-
-        return $this->objects[$namespace][$key];
+        return $object;
     }
 
     /**
-     * @internal
-     *
-     * @param string      $namespace
      * @param string      $key
      * @param object|null $object
      */
-    protected function setObject($namespace, $key, $object)
+    protected function setObject($key, $object)
     {
+        unset_value($key, $this->values, $this->changedValues);
+        unset_value($key, $this->objects);
+
         if ($object) {
-            $this->values[$namespace][$key] = get_values($object);
-            $this->changedValues[$namespace][$key] = get_values($object);
+            set_value($key, get_object_values($object), $this->values, $this->changedValues);
 
-            set_values($object, $this->values[$namespace][$key], true);
+            $values =& get_value($key, [], $this->values);
+            set_object_values($object, $values, true);
 
-            $this->objects[$namespace][$key] = $object;
-        } else {
-            unset($this->values[$namespace][$key]);
-            unset($this->objects[$namespace][$key]);
-            $this->changedValues[$namespace][$key] = null;
+            set_value($key, $object, $this->objects);
         }
     }
 
     /**
-     * @internal
-     *
-     * @param string   $namespace
      * @param string   $key
      * @param object[] $objects
      */
-    protected function setObjects($namespace, $key, $objects)
+    protected function setObjects($key, $objects)
     {
         if (null === $objects) {
-            unset($this->objects[$namespace][$key]);
-            unset($this->values[$namespace][$key]);
-            $this->changedValues[$namespace][$key] = null;
+            unset_value($key, $this->values, $this->changedValues);
+            unset_value($key, $this->objects);
         } else {
-            $this->objects[$namespace][$key] = [];
-            $this->values[$namespace][$key] = [];
-            $this->changedValues[$namespace][$key] = [];
+            set_value($key, [], $this->values, $this->changedValues);
+            set_value($key, [], $this->objects);
+        }
 
-            foreach ($objects as $object) {
-                $this->addObject($namespace, $key, $object);
+        if ($objects) {
+            foreach ($objects as $objectKey => $object) {
+                $this->addObject($key, $object, $objectKey);
             }
         }
     }
 
     /**
-     * @internal
-     *
-     * @param string $namespace
      * @param string $key
      * @param object $object
+     * @param string|null $objectKey
      */
-    protected function addObject($namespace, $key, $object)
+    protected function addObject($key, $object, $objectKey = null)
     {
-        if (false == isset($this->values[$namespace][$key])) {
-            $this->values[$namespace][$key] = [];
-        }
-        if (false == isset($this->objects[$namespace][$key])) {
-            $this->objects[$namespace][$key] = [];
+        if (false == has_value($key, $this->values)) {
+            set_value($key, [], $this->values, $this->changedValues);
         }
 
-        $objectKey = count($this->values[$namespace][$key]);
+        if (false == has_value($key, $this->objects)) {
+            set_value($key, [], $this->objects);
+        }
 
-        $this->objects[$namespace][$key][$objectKey] = $object;
-        $this->values[$namespace][$key][$objectKey] = get_values($object);
-        $this->changedValues[$namespace][$key][$objectKey] = get_values($object);
+        if (null === $objectKey) {
+            $objectKey = count(get_value($key, [], $this->values));
+        }
 
-        set_values($object, $this->values[$namespace][$key][$objectKey], true);
+        $this->setObject("$key.$objectKey", $object);
     }
 
     /**
-     * @internal
-     *
-     * @param string          $namespace
      * @param string          $key
      * @param string|\Closure $classOrClosure
      *
-     * @return object[]
+     * @return \Traversable
      */
-    protected function getObjects($namespace, $key, $classOrClosure)
+    protected function getObjects($key, $classOrClosure)
     {
-        if (false == isset($this->values[$namespace][$key])) {
-            return [];
-        }
-        if (false == isset($this->objects[$namespace][$key])) {
-            $this->objects[$namespace][$key] = [];
-        }
+        foreach (array_keys(get_value($key, [], $this->values)) as $valueKey) {
+            if (false == $object = get_value("$key.$valueKey", null, $this->objects)) {
+                $values =& get_value("$key.$valueKey", [], $this->values);
 
-        // the addObject method can add an object to the end of collection but the rest of collection has not been initiated yet
-        foreach (array_keys($this->values[$namespace][$key]) as $valueKey) {
-            if (false == isset($this->objects[$namespace][$key][$valueKey])) {
-                $this->objects[$namespace][$key][$valueKey] = build_object(
-                    $classOrClosure,
-                    $this->values[$namespace][$key][$valueKey],
-                    $this->objectBuilder
-                );
+                $object = build_object($classOrClosure, $values, $this->objectBuilder);
+
+                set_value($key, $object, $this->objects);
             }
-        }
 
-        return $this->objects[$namespace][$key];
+            yield $object;
+        }
     }
 }
