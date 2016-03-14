@@ -12,11 +12,13 @@
     }
   ],
   "require": {
-    "php": "^5.5.0|^7.0",
-    "mongodb/mongodb": "1.0.*@dev"
+    "php": "^5.5.0|^7.0"
   },
   "require-dev": {
     "phpunit/phpunit": "~4.0"
+  },
+  "suggest": {
+      "mongodb/mongodb": "^1 If you'd like to use mongodb storage"
   },
   "config": {
     "bin-dir": "bin"
@@ -30,7 +32,7 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-master": "0.1-dev"
+      "dev-master": "0.2-dev"
     }
   }
 }

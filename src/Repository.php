@@ -4,14 +4,14 @@ namespace Makasim\Yadm;
 class Repository
 {
     /**
-     * @var Storage
+     * @var MongodbStorage
      */
     protected $storage;
 
     /**
-     * @param Storage $storage
+     * @param MongodbStorage $storage
      */
-    public function __construct(Storage $storage)
+    public function __construct(MongodbStorage $storage)
     {
         $this->storage = $storage;
     }

@@ -3,19 +3,19 @@ namespace Makasim\Yadm\Tests\Functional;
 
 use Makasim\Yadm\Hydrator;
 use Makasim\Yadm\PessimisticLock;
-use Makasim\Yadm\Storage;
+use Makasim\Yadm\MongodbStorage;
 use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\Persistable;
 use MongoDB\InsertOneResult;
 
-class StorageTest extends FunctionalTest
+class MongodbStorageTest extends FunctionalTest
 {
     public function testCreateModel()
     {
         $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new Storage($collection, $hydrator);
+        $storage = new MongodbStorage($collection, $hydrator);
 
 
         $model = $storage->create();
@@ -29,7 +29,7 @@ class StorageTest extends FunctionalTest
         $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new Storage($collection, $hydrator);
+        $storage = new MongodbStorage($collection, $hydrator);
 
         $model = new Model();
         $model->values = ['foo' => 'fooVal', 'bar' => 'barVal', 'ololo' => ['foo', 'foo' => 'fooVal']];
@@ -54,7 +54,7 @@ class StorageTest extends FunctionalTest
         $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new Storage($collection, $hydrator);
+        $storage = new MongodbStorage($collection, $hydrator);
 
         $model = new Model();
         $model->values = ['foo' => 'fooVal', 'bar' => 'barVal'];
@@ -82,7 +82,7 @@ class StorageTest extends FunctionalTest
         $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new Storage($collection, $hydrator);
+        $storage = new MongodbStorage($collection, $hydrator);
 
         $model = new Model();
         $model->values = ['foo' => 'fooVal', 'bar' => 'barVal'];
@@ -109,7 +109,7 @@ class StorageTest extends FunctionalTest
         $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new Storage($collection, $hydrator, $pessimisticLock);
+        $storage = new MongodbStorage($collection, $hydrator, $pessimisticLock);
 
         $model = new Model();
         $model->values = ['foo' => 'fooVal', 'bar' => 'barVal'];
@@ -123,7 +123,7 @@ class StorageTest extends FunctionalTest
             $this->assertInstanceOf(Model::class, $lockedModel);
             $this->assertEquals($model->values, $lockedModel->values);
 
-            $this->assertInstanceOf(Storage::class, $storage);
+            $this->assertInstanceOf(MongodbStorage::class, $storage);
 
             $model->values['ololo'] = 'ololoVal';
 
@@ -144,7 +144,7 @@ class StorageTest extends FunctionalTest
         $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new Storage($collection, $hydrator);
+        $storage = new MongodbStorage($collection, $hydrator);
 
         $result = $storage->find([]);
 

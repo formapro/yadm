@@ -4,7 +4,7 @@ namespace Makasim\Yadm;
 use MongoDB\BSON\ObjectID;
 use MongoDB\Collection;
 
-class Storage
+class MongodbStorage
 {
     /**
      * @var Collection
