@@ -6,29 +6,87 @@ The schema less ODM. It gives you the fastest hydration and persistent. The easi
 
 This approach tries to gather the best from arrays and objects.
 
-Model class and its storage:
+## Fast persistence.
+
+To get object state you have to get a protected array from `values` property.
+There is a handy method for it `get_object_values`.
+Once you get the array you can easily persist.
 
 ```php
 <?php
-
 namespace Acme;
 
-use Makasim\Yadm\ValuesTrait;
-use Makasim\Yadm\ObjectsTrait;
-use Makasim\Yadm\Storage;
-use Makasim\Yadm\Hydrator;
-use MongoDB\Client;
-use MongoDB\BSON\ObjectID;
+$price = new Price();
+$price->setAmount(100);
+$price->setCurrency('USD');
+
+$order = new Order;
+$order->setNumber('theNumber');
+$order->setPrice($price);
+
+$array = \Makasim\Yadm\get_object_values($order);
+// [
+//     'number' => 'theNUmber'
+//     'price' => ['amount' => 100, 'currency' => 'USD'],
+// ]
+```
+
+## Fast hydration
+
+To set object state you have to set an object representation to protected `values` property.
+There is a handy method for it `set_object_values`.
+Once you set the array you can use the model.
+
+```php
+<?php
+$order = new Order;
+\Makasim\Yadm\set_object_values($order, [
+    'number' => 'theNumber',
+    'price' => ['amount' => 100, 'currency' => 'USD'],
+]);
+
+$order->getNumber(); // theNumber
+$order->getPrice()->getAmount(); // 100
+$order->getPrice()->getCurrency(); // USD
+```
+
+## Models
+
+You store everything in `values` property as array.
+
+```php
+<?php
+namespace Acme;
+
+class Price
+{
+    use ValuesTrait;
+
+    public function getAmount()
+    {
+        return $this->getValue('amount');
+    }
+
+    public function setAmount($amount)
+    {
+        $this->setValue('amount', $amount);
+    }
+
+    public function getCurrency()
+    {
+        return $this->getValue('currency');
+    }
+
+    public function setCurrency($currency)
+    {
+        $this->setValue('currency', $currency);
+    }
+}
 
 class Order
 {
     use ValuesTrait;
-    use ObjectsTrait; // If you are not going to use sub objects you can remove it.
-
-    public function getId()
-    {
-        return \Makasim\Yadm\get_object_id($this);
-    }
+    use ObjectsTrait;
 
     public function getNumber()
     {
@@ -39,95 +97,6 @@ class Order
     {
         $this->setValue('number', $number);
     }
-}
-
-$collection = (new Client())->selectCollection('acme_demo', 'orders');
-$hydrator = new Hydrator(Order::class);
-
-$storage = new Storage($collection, $hydrator)
-```
-
-Insert a model:
-
-```php
-<?php
-
-$order = $storage->create();
-
-$order->setNumber(1234);
-
-$storage->insert($order);
-```
-
-Update a model:
-
-```php
-<?php
-
-$order = $storage->create();
-
-$order->setNumber(1234);
-
-$storage->insert($order);
-
-$order->setNumber(5678);
-
-$storage->update($order);
-```
-
-Find a model
-
-```php
-<?php
-
-$order = $storage->create();
-
-$order->setNumber(1234);
-
-$storage->insert($order);
-
-$storage->findOne(['_id' => new ObjectID($order->getId())]);
-```
-
-Hydrate a model:
-
-```php
-<?php
-
-$orderValues = [/* an array previously stored somewhere*/];
-
-// create new order
-$order = new Order;
-\Makasim\Yadm\set_values($order, $orderValues);
-
-$number = $order->getNumber();
-```
-
-Set custom values:
-
-```php
-<?php
-
-$order = new Order;
-
-$order->setValue('subscription.id', 123);
-$order->setValue('subscription.deliveryDate', '2015-10-10');
-$order->setValue('fortnox.invoiceNumber', 543);
-```
-
-# Objects
-
-Is a thin wrapper above values traits, which allows to build models tree, while still storing everything in the root.
-For example we have an order and price where the order is the root and price is a tree leaf.
-
-```php
-<?php
-
-namespace Acme;
-
-class Order
-{
-    // ..
 
     public function getPrice()
     {
@@ -136,36 +105,27 @@ class Order
 
     public function setPrice(Price $price = null)
     {
-        $this->setObject('price', $price);
-    }
-}
-
-class Price
-{
-    use \Makasim\Yadm\ValuesTrait;
-
-    public function getAmount()
-    {
-        return $this->getValue('amount', null, 'int');
-    }
-
-    public function setAmount($amount)
-    {
-        $this->setValue('amount', $amount);
+        $this->setValue('price', $price);
     }
 }
 ```
 
-Insert order with sub objects:
+## Mongodb storage
 
 ```php
 <?php
+namespace Acme;
 
-$price = new Price();
-$price->setAmount(100);
+$collection = (new Client())->selectCollection('acme_demo', 'orders');
+$hydrator = new Hydrator(Order::class);
+$storage = new Storage($collection, $hydrator)
 
 $order = $storage->create();
-$order->setPrice($price);
+$order->setNumber(1234);
 
 $storage->insert($order);
 ```
+
+## License
+
+MIT
