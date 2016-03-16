@@ -15,6 +15,7 @@
     "php": "^5.5.0|^7.0"
   },
   "require-dev": {
+    "mongodb/mongodb": "^1",
     "phpunit/phpunit": "~4.0"
   },
   "suggest": {
