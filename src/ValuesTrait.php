@@ -19,11 +19,8 @@ trait ValuesTrait
      */
     protected function addValue($key, $value)
     {
-        if ($value instanceof \DateTime) {
-            $value = [
-                'unix' => (int) $value->format('U'),
-                'iso' => (string) $value->format(DATE_ISO8601),
-            ];
+        if (method_exists($this, 'castValue')) {
+            $value = $this->castValue($value);
         }
 
         $currentValue = $this->getValue($key, []);
@@ -42,11 +39,8 @@ trait ValuesTrait
      */
     protected function setValue($key, $value)
     {
-        if ($value instanceof \DateTime) {
-            $value = [
-                'unix' => (int) $value->format('U'),
-                'iso' => (string) $value->format(DATE_ISO8601),
-            ];
+        if (method_exists($this, 'castValue')) {
+            $value = $this->castValue($value);
         }
 
         set_value($key, $value, $this->values, $this->changedValues);
@@ -67,16 +61,12 @@ trait ValuesTrait
     {
         $value = get_value($key, $default , $this->values);
 
-        if ('date' == $castTo) {
-            if (is_numeric($value)) {
-                $value = \DateTime::createFromFormat('U', $value);
-            } elseif (is_array($value)) {
-                $value = \DateTime::createFromFormat('U', $value['unix']);
+        if ($castTo) {
+            if (method_exists($this, 'cast')) {
+                $value = $this->cast($value, $castTo);
             } else {
-                $value = new \DateTime($value);
+                throw new \LogicException('Casting is not supported.');
             }
-        } elseif ($castTo) {
-            settype($value, $castTo);
         }
 
         return $value;
