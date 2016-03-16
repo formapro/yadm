@@ -19,7 +19,7 @@ trait CastTrait
             } else {
                 $value = new \DateTime($value);
             }
-        } else if (\DateInterval::class) {
+        } else if (\DateInterval::class == $castTo) {
             if (is_array($value)) {
                 $value = new \DateInterval($value['interval']);
             } else {

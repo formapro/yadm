@@ -60,58 +60,6 @@ class ValuesTraitTest extends \PHPUnit_Framework_TestCase
         $this->assertSame([], \Makasim\Yadm\get_object_changed_values($obj));
     }
 
-    public function testShouldAllowSetDateTimeValueAndGetPreviouslySet()
-    {
-        $now = new \DateTime('now');
-        $timestamp = $now->format('U');
-
-        $obj = new ValueTest();
-        $obj->setValue('aNamespace.aKey', $now);
-
-        $actualDate = $obj->getValue('aNamespace.aKey', null, 'date');
-        $this->assertInstanceOf(\DateTime::class, $actualDate);
-        $this->assertEquals($timestamp, $actualDate->format('U'));
-    }
-
-    public function testShouldAllowSetDateTimeValueASISOAndGetPreviouslySet()
-    {
-        $now = new \DateTime('now');
-        $timestamp = $now->format('U');
-        $iso = $now->format(DATE_ISO8601);
-
-        $obj = new ValueTest();
-        $obj->setValue('aNamespace.aKey', $now->format(DATE_ISO8601));
-
-        $this->assertSame($iso, $obj->getValue('aNamespace.aKey'));
-
-        $actualDate = $obj->getValue('aNamespace.aKey', null, 'date');
-        $this->assertInstanceOf(\DateTime::class, $actualDate);
-        $this->assertEquals($timestamp, $actualDate->format('U'));
-    }
-
-    public function testShouldAllowSetDateTimeValueASTimestampAndGetPreviouslySet()
-    {
-        $now = new \DateTime('now');
-        $timestamp = $now->format('U');
-
-        $obj = new ValueTest();
-        $obj->setValue('aNamespace.aKey', $now->format('U'));
-
-        $this->assertSame($timestamp, $obj->getValue('aNamespace.aKey'));
-
-        $actualDate = $obj->getValue('aNamespace.aKey', null, 'date');
-        $this->assertInstanceOf(\DateTime::class, $actualDate);
-        $this->assertEquals($timestamp, $actualDate->format('U'));
-    }
-
-    public function testShouldAllowCastToTypeOnGet()
-    {
-        $obj = new ValueTest();
-        $obj->setValue('aNamespace.aKey', '123');
-
-        $this->assertSame(123, $obj->getValue('aNamespace.aKey', null, 'int'));
-    }
-
     public function testShouldAllowUnsetPreviouslySetValue()
     {
         $obj = new ValueTest();
@@ -136,20 +84,6 @@ class ValuesTraitTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(['aVal'], $obj->getValue('aNamespace.aKey'));
         $this->assertSame(['aNamespace' => ['aKey' => ['aVal']]], \Makasim\Yadm\get_object_values($obj));
         $this->assertSame(['aNamespace' => ['aKey' => ['aVal']]], \Makasim\Yadm\get_object_changed_values($obj));
-    }
-
-    public function testShouldAllowAddDateValueToArrayAndConvertToISO()
-    {
-        $now = new \DateTime('now');
-        $timestamp = (int) $now->format('U');
-        $iso = $now->format(DATE_ISO8601);
-
-        $obj = new ValueTest();
-        $obj->addValue('aNamespace.aKey', $now);
-
-        $this->assertSame([['unix' => $timestamp, 'iso' => $iso]], $obj->getValue('aNamespace.aKey'));
-        $this->assertSame(['aNamespace' => ['aKey' => [['unix' => $timestamp, 'iso' => $iso]]]], \Makasim\Yadm\get_object_values($obj));
-        $this->assertSame(['aNamespace' => ['aKey' => [['unix' => $timestamp, 'iso' => $iso]]]], \Makasim\Yadm\get_object_changed_values($obj));
     }
 
     public function testShouldAllowAddValueToAlreadyArray()
