@@ -8,9 +8,8 @@ This approach tries to gather the best from arrays and objects.
 
 ## Fast persistence.
 
-To get object state you have to get a protected array from `values` property.
-There is a handy method for it `get_object_values`.
-Once you get the array you can easily persist.
+To get object state you have to read an array from protected `values` property. You can add a public getter for it or use reflection. There is a handy method for it `get_object_values`.
+Once you get the array you can easily persist it.
 
 ```php
 <?php
@@ -26,19 +25,22 @@ $order->setPrice($price);
 
 $array = \Makasim\Yadm\get_object_values($order);
 // [
-//     'number' => 'theNUmber'
+//     'number' => 'theNumber'
 //     'price' => ['amount' => 100, 'currency' => 'USD'],
 // ]
 ```
 
 ## Fast hydration
 
-To set object state you have to set an object representation to protected `values` property.
+To set object state you have to write to protected `values` property. 
+You can add a public getter for it or use reflection.
 There is a handy method for it `set_object_values`.
 Once you set the array you can use the model.
 
 ```php
 <?php
+namespace Acme;
+
 $order = new Order;
 \Makasim\Yadm\set_object_values($order, [
     'number' => 'theNumber',
@@ -57,6 +59,9 @@ You store everything in `values` property as array.
 ```php
 <?php
 namespace Acme;
+
+use Makasim\Yadm\ValuesTrait;
+use Makasim\Yadm\ObjectsTrait;
 
 class Price
 {
