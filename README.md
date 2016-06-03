@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/makasim/values.png?branch=master)](https://travis-ci.org/makasim/yadm)
 
-The schema less ODM. It gives you the fastest hydration and persistent. The easiest solution for building aggregation roots or objects trees. Good choice for [aggregation root](http://martinfowler.com/bliki/DDD_Aggregate.html) models.
+The schema less ODM. It gives you the fastest hydration and persistent. The easiest solution for building aggregation roots or objects trees. It is a good choice for [aggregation root](http://martinfowler.com/bliki/DDD_Aggregate.html) models because it super easy t build object trees. [bounded context](http://martinfowler.com/bliki/BoundedContext.html) could be easily build too, because that easy to copy object data from one model to another. 
 
 This approach tries to gather the best from arrays and objects.
 
