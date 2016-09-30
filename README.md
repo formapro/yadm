@@ -6,6 +6,24 @@ The schema less ODM. It gives you the fastest hydration and persistent. The easi
 
 This approach tries to gather the best from arrays and objects.
 
+## Benchmarks
+
+```
+Bench: Mongodb create 10000 models            6.00 MiB    1500 ms
+Bench: Mongodb find 10000 models              6.00 MiB    12 ms
+
+Bench: Yadm create 10000 models           	  6.00 MiB    1563 ms
+Bench: Yadm find 10000 models             	  6.00 MiB    95 ms
+
+Bench: DoctrineORM create 100 models      	  6.00 MiB    2412 ms
+Bench: DoctrineORM create 10000 models. SF    50.00 MiB   1657 ms
+Bench: DoctrineORM find 10000 models.     	  52.00 MiB   1732 ms
+
+Bench: DoctrineODM create 100 models      	  4.25 MiB    339 ms
+Bench: DoctrineODM create 10000 models. SF    84.25 MiB   2386 ms
+Bench: DoctrineODM find 10000 models.         44.00 MiB   560 ms
+```
+
 ## Fast persistence.
 
 To get object state you have to read an array from protected `values` property. You can add a public getter for it or use reflection. There is a handy method for it `get_object_values`.
