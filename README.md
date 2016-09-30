@@ -110,7 +110,7 @@ class Order
 
     public function setPrice(Price $price = null)
     {
-        $this->setValue('price', $price);
+        $this->setObject('price', $price);
     }
 }
 ```
