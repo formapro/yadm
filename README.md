@@ -123,7 +123,7 @@ namespace Acme;
 
 $collection = (new Client())->selectCollection('acme_demo', 'orders');
 $hydrator = new Hydrator(Order::class);
-$storage = new Storage($collection, $hydrator);
+$storage = new MongodbStorage($collection, $hydrator);
 
 $order = $storage->create();
 $order->setNumber(1234);
