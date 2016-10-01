@@ -63,6 +63,32 @@ class MongodbStorage
     }
 
     /**
+     * @param object[] $models
+     * @param array  $options
+     *
+     * @return \MongoDB\InsertOneResult
+     */
+    public function insertMany(array $models, array $options = [])
+    {
+        $data = [];
+        foreach ($models as $key => $model) {
+            $data[$key] = get_object_values($model);
+        }
+
+        $result = $this->collection->insertMany($data, $options);
+        if (false == $result->isAcknowledged()) {
+            throw new \LogicException('Operation is not acknowledged');
+        }
+
+        foreach ($result->getInsertedIds() as $key => $modelId) {
+            $this->hydrator->hydrate($data[$key], $models[$key]);
+            set_object_id($models[$key], $modelId);
+        }
+
+        return $result;
+    }
+
+    /**
      * @param object     $model
      * @param null|array $filter
      * @param array      $options
