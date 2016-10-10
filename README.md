@@ -1,4 +1,4 @@
-# Yadm is a MongoDB ODM.
+# Yadm is the fastest MongoDB ODM.
 
 [![Build Status](https://travis-ci.org/makasim/values.png?branch=master)](https://travis-ci.org/makasim/yadm)
 
