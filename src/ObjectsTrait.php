@@ -115,7 +115,7 @@ trait ObjectsTrait
 
                 $object = build_object($classOrClosure, $values, $this->objectBuilder);
 
-                set_value($key, $object, $this->objects);
+                set_value("$key.$valueKey", $object, $this->objects);
             }
 
             yield $object;
