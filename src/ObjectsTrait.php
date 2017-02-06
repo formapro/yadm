@@ -121,4 +121,11 @@ trait ObjectsTrait
             yield $object;
         }
     }
+
+    public function __clone()
+    {
+        if ($this->objectBuilder) {
+            $this->objectBuilder = \Closure::bind($this->objectBuilder, $this);
+        }
+    }
 }
