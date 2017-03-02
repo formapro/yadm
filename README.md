@@ -20,6 +20,8 @@ Once you get the array you can easily persist it.
 <?php
 namespace Acme;
 
+use function Makasim\Values\get_values;
+
 $price = new Price();
 $price->setAmount(100);
 $price->setCurrency('USD');
@@ -28,7 +30,7 @@ $order = new Order;
 $order->setNumber('theNumber');
 $order->setPrice($price);
 
-$array = \Makasim\Yadm\get_object_values($order);
+$array = get_values($order);
 // [
 //     'number' => 'theNumber'
 //     'price' => ['amount' => 100, 'currency' => 'USD'],
@@ -45,9 +47,11 @@ Once you set the array you can use the model.
 ```php
 <?php
 namespace Acme;
+use function Makasim\Values\set_values;
 
 $order = new Order;
-\Makasim\Yadm\set_object_values($order, [
+
+set_values($order, [
     'number' => 'theNumber',
     'price' => ['amount' => 100, 'currency' => 'USD'],
 ]);
@@ -65,8 +69,8 @@ You store everything in `values` property as array.
 <?php
 namespace Acme;
 
-use Makasim\Yadm\ValuesTrait;
-use Makasim\Yadm\ObjectsTrait;
+use Makasim\Values\ValuesTrait;
+use Makasim\Values\ObjectsTrait;
 
 class Price
 {
@@ -125,6 +129,10 @@ class Order
 ```php
 <?php
 namespace Acme;
+
+use MongoDB\Client;
+use Makasim\Yadm\Hydrator;
+use Makasim\Yadm\MongodbStorage;
 
 $collection = (new Client())->selectCollection('acme_demo', 'orders');
 $hydrator = new Hydrator(Order::class);
