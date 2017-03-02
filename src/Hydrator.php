@@ -1,6 +1,8 @@
 <?php
 namespace Makasim\Yadm;
 
+use function Makasim\Values\set_values;
+
 class Hydrator
 {
     /**
@@ -50,7 +52,7 @@ class Hydrator
             $values['_id'] = (string) $values['_id'];
         }
 
-        set_object_values($model, $values);
+        set_values($model, $values);
 
         return $model;
     }

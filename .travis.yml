@@ -1,8 +1,8 @@
 language: php
 
 php:
-  - 5.5
   - 5.6
+  - 7.0
 
 sudo: false
 
@@ -10,15 +10,14 @@ cache:
   directories:
     - $HOME/.composer/cache
 
-services: mongodb
+services:
+  - mongodb
 
 before_install:
-    - pecl install mongodb
-    - echo "extension=mongodb.so" >> `php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||"`
-    - composer self-update
+    - echo "extension = mongodb.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 install:
-    - composer --prefer-source install
+    - composer install
 
 notifications:
   email:

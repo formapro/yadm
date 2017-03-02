@@ -1,25 +1,22 @@
-
 {
   "name": "makasim/yadm",
   "type": "library",
-  "description": "The fastest object document mapper. Supports MongoDB",
+  "description": "The fastest MongoDB object document mapper.",
   "keywords": ["model", "mongodb", "odm", "storage"],
   "license": "MIT",
   "authors": [
     {
-      "name": "Maksim Kotlyar",
+      "name": "Maksym Kotliar",
       "email": "kotlyar.maksim@gmail.com"
     }
   ],
   "require": {
-    "php": "^5.5.0|^7.0"
+    "php": "^7.0",
+    "mongodb/mongodb": "^1",
+    "makasim/values": "^0.2"
   },
   "require-dev": {
-    "mongodb/mongodb": "^1",
-    "phpunit/phpunit": "~4.0"
-  },
-  "suggest": {
-      "mongodb/mongodb": "^1 If you'd like to use mongodb storage"
+    "phpunit/phpunit": "~6.0"
   },
   "config": {
     "bin-dir": "bin"
@@ -33,7 +30,7 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-master": "0.2-dev"
+      "dev-master": "0.3-dev"
     }
   }
 }

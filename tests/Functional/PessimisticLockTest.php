@@ -22,7 +22,7 @@ class PessimisticLockTest extends FunctionalTest
 
         $endTime = time();
 
-        $this->assertGreaterThanOrEqual(3, $endTime - $startTime);
+        self::assertGreaterThanOrEqual(3, $endTime - $startTime);
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 namespace Makasim\Yadm;
 
+use function Makasim\Values\get_values;
 use MongoDB\BSON\ObjectID;
 use MongoDB\Collection;
 
@@ -49,7 +50,7 @@ class MongodbStorage
      */
     public function insert($model, array $options = [])
     {
-        $values = get_object_values($model);
+        $values = get_values($model);
 
         $result = $this->collection->insertOne($values, $options);
         if (false == $result->isAcknowledged()) {
@@ -72,7 +73,7 @@ class MongodbStorage
     {
         $data = [];
         foreach ($models as $key => $model) {
-            $data[$key] = get_object_values($model);
+            $data[$key] = get_values($model);
         }
 
         $result = $this->collection->insertMany($data, $options);
@@ -101,7 +102,7 @@ class MongodbStorage
             $filter = ['_id' => new ObjectID(get_object_id($model))];
         }
 
-        $values = get_object_values($model);
+        $values = get_values($model);
         unset($values['_id']);
 
         $result = $this->collection->updateOne($filter, ['$set' => $values], $options);
@@ -121,7 +122,7 @@ class MongodbStorage
     public function delete($model, array $options = [])
     {
         $modelId = get_object_id($model);
-        $values = get_object_values($model);
+        $values = get_values($model);
         unset($values['_id']);
 
         $result = $this->collection->deleteOne(['_id' => new ObjectID($modelId)], $options);

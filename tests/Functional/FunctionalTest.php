@@ -3,8 +3,9 @@ namespace Makasim\Yadm\Tests\Functional;
 
 use MongoDB\Client;
 use MongoDB\Database;
+use PHPUnit\Framework\TestCase;
 
-abstract class FunctionalTest extends \PHPUnit_Framework_TestCase
+abstract class FunctionalTest extends TestCase
 {
     /**
      * @var Database
@@ -16,7 +17,9 @@ abstract class FunctionalTest extends \PHPUnit_Framework_TestCase
      */
     protected function setUpMongoClient()
     {
-        $client = new Client();
+        $uri = getenv('MONGODB_URI') ?: 'mongodb://127.0.0.1/';
+
+        $client = new Client($uri);
         $this->database = $client->selectDatabase('yadm_test');
 
         foreach ($this->database->listCollections() as $collectionInfo) {
