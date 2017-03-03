@@ -108,7 +108,7 @@ class MongodbStorageTest extends FunctionalTest
         $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new MongodbStorage($collection, $hydrator, $pessimisticLock);
+        $storage = new MongodbStorage($collection, $hydrator, null, $pessimisticLock);
 
         $model = new Model();
         $model->values = ['foo' => 'fooVal', 'bar' => 'barVal'];
