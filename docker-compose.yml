@@ -9,3 +9,5 @@ services:
 
   mongo:
     image: mongo:3
+    ports:
+      - "27017:27017"

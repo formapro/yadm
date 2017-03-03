@@ -18,6 +18,11 @@ class MongodbStorage
     private $hydrator;
 
     /**
+     * @var ChangesCollector
+     */
+    private $changesCollector;
+
+    /**
      * @var PessimisticLock
      */
     private $pessimisticLock;
@@ -25,12 +30,18 @@ class MongodbStorage
     /**
      * @param Collection $collection
      * @param Hydrator $hydrator
+     * @param ChangesCollector $changesCollector
      * @param PessimisticLock|null $pessimisticLock
      */
-    public function __construct(Collection $collection, Hydrator $hydrator, PessimisticLock $pessimisticLock = null)
-    {
+    public function __construct(
+        Collection $collection,
+        Hydrator $hydrator,
+        ChangesCollector $changesCollector = null,
+        PessimisticLock $pessimisticLock = null
+    ) {
         $this->collection = $collection;
         $this->hydrator = $hydrator;
+        $this->changesCollector = $changesCollector ?: new ChangesCollector();
         $this->pessimisticLock = $pessimisticLock;
     }
 
@@ -50,15 +61,14 @@ class MongodbStorage
      */
     public function insert($model, array $options = [])
     {
-        $values = get_values($model);
 
-        $result = $this->collection->insertOne($values, $options);
+        $result = $this->collection->insertOne(get_values($model), $options);
         if (false == $result->isAcknowledged()) {
             throw new \LogicException('Operation is not acknowledged');
         }
 
-        $this->hydrator->hydrate($values, $model);
         set_object_id($model, $result->getInsertedId());
+        $this->changesCollector->register($model);
 
         return $result;
     }
@@ -67,13 +77,13 @@ class MongodbStorage
      * @param object[] $models
      * @param array  $options
      *
-     * @return \MongoDB\InsertOneResult
+     * @return \MongoDB\InsertManyResult
      */
     public function insertMany(array $models, array $options = [])
     {
         $data = [];
         foreach ($models as $key => $model) {
-            $data[$key] = get_values($model);
+            $data[$key] =get_values($model);
         }
 
         $result = $this->collection->insertMany($data, $options);
@@ -84,6 +94,8 @@ class MongodbStorage
         foreach ($result->getInsertedIds() as $key => $modelId) {
             $this->hydrator->hydrate($data[$key], $models[$key]);
             set_object_id($models[$key], $modelId);
+
+            $this->changesCollector->register($models[$key]);
         }
 
         return $result;
@@ -102,13 +114,14 @@ class MongodbStorage
             $filter = ['_id' => new ObjectID(get_object_id($model))];
         }
 
-        $values = get_values($model);
-        unset($values['_id']);
+        $update = $this->changesCollector->changes($model);
 
-        $result = $this->collection->updateOne($filter, ['$set' => $values], $options);
+        $result = $this->collection->updateOne($filter, $update, $options);
         if (false == $result->isAcknowledged()) {
             throw new \LogicException('Operation is not acknowledged');
         }
+
+        $this->changesCollector->register($model);
 
         return $result;
     }
@@ -121,14 +134,16 @@ class MongodbStorage
      */
     public function delete($model, array $options = [])
     {
-        $modelId = get_object_id($model);
-        $values = get_values($model);
-        unset($values['_id']);
+        $modelId = new ObjectID(get_object_id($model));
 
-        $result = $this->collection->deleteOne(['_id' => new ObjectID($modelId)], $options);
+        $result = $this->collection->deleteOne(['_id' => $modelId], $options);
         if (false == $result->isAcknowledged()) {
             throw new \LogicException('Operation is not acknowledged');
         }
+
+        // TODO remove id???
+
+        $this->changesCollector->unregister($model);
 
         return $result;
     }
@@ -144,7 +159,11 @@ class MongodbStorage
         $options['typeMap'] = ['root' => 'array', 'document' => 'array', 'array' => 'array'];
 
         if ($values = $this->collection->findOne($filter, $options)) {
-            return $this->hydrator->hydrate($values);
+            $object = $this->hydrator->hydrate($values);
+
+            $this->changesCollector->register($object);
+
+            return $object;
         }
     }
 
@@ -160,7 +179,11 @@ class MongodbStorage
         $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
 
         foreach ($cursor as $values) {
-            yield $this->hydrator->hydrate($values);
+            $object = $this->hydrator->hydrate($values);
+
+            $this->changesCollector->register($object);
+
+            yield $object;
         }
     }
 

@@ -13,7 +13,8 @@
   "require": {
     "php": "^7.0",
     "mongodb/mongodb": "^1",
-    "makasim/values": "^0.2"
+    "makasim/values": "^0.2",
+    "mikemccabe/json-patch-php": "^0.1"
   },
   "require-dev": {
     "phpunit/phpunit": "~6.0"
@@ -25,7 +26,7 @@
     "psr-4": { "Makasim\\Yadm\\": "src" },
     "files": ["src/functions_include.php"]
   },
-  "autoload0-dev": {
+  "autoload-dev": {
     "psr-4": { "Makasim\\Yadm\\Tests\\": "tests" }
   },
   "extra": {
