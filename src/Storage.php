@@ -5,7 +5,7 @@ use function Makasim\Values\get_values;
 use MongoDB\BSON\ObjectID;
 use MongoDB\Collection;
 
-class MongodbStorage
+class Storage
 {
     /**
      * @var Collection
@@ -188,6 +188,17 @@ class MongodbStorage
     }
 
     /**
+     * @param array $filter
+     * @param array $options
+     *
+     * @return int
+     */
+    public function count(array $filter = [], array $options = [])
+    {
+        return $this->collection->count($filter, $options);
+    }
+
+    /**
      * @param $id
      * @param callable $lockCallback
      */
@@ -213,13 +224,5 @@ class MongodbStorage
     public function getCollection()
     {
         return $this->collection;
-    }
-
-    /**
-     * @return Repository
-     */
-    public function getRepository()
-    {
-        return new Repository($this);
     }
 }
