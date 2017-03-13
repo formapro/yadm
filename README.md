@@ -4,11 +4,6 @@
 
 The schema less ODM. It gives you the fastest hydration and persistent. Based on [makasim/values](https://github.com/makasim/values) lib.
 
-## Benchmarks
-
-* [Results](https://docs.google.com/spreadsheets/d/1CzVQuAz6cVAUKZyoQZyagQv48mgA3JAYJ2dNsoALV7A/edit#gid=0)
-* [Code](https://github.com/makasim/yadm-benchmark)
-
 ## Storage example
 
 ```php
@@ -38,6 +33,11 @@ $storage->delete($foundOrder);
 ## Other examples
 
 In [makasim/values](https://github.com/makasim/values) repo you can find examples on how to build simple objects, object trees, hydrate and retrive data from\to object.
+
+## Benchmarks
+
+* [Results](https://docs.google.com/spreadsheets/d/1CzVQuAz6cVAUKZyoQZyagQv48mgA3JAYJ2dNsoALV7A/edit#gid=0)
+* [Code](https://github.com/makasim/yadm-benchmark)
 
 ## License
 
