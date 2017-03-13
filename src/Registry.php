@@ -24,6 +24,14 @@ class Registry
     }
 
     /**
+     * @return Storage[]|array
+     */
+    public function getStorages()
+    {
+        return $this->storages;
+    }
+
+    /**
      * @param object|string $modelOrClass
      *
      * @return Storage
