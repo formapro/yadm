@@ -13,7 +13,7 @@
   "require": {
     "php": "^7.0",
     "mongodb/mongodb": "^1",
-    "makasim/values": "^0.2",
+    "makasim/values": "^0.2.2",
     "mikemccabe/json-patch-php": "^0.1"
   },
   "require-dev": {
