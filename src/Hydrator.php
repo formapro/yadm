@@ -1,6 +1,7 @@
 <?php
 namespace Makasim\Yadm;
 
+use function Makasim\Values\build_object;
 use function Makasim\Values\set_values;
 
 class Hydrator
@@ -11,11 +12,6 @@ class Hydrator
     private $modelClass;
 
     /**
-     * @var object
-     */
-    private $prototypeModel;
-
-    /**
      * @param string $modelClass
      */
     public function __construct($modelClass)
@@ -24,17 +20,13 @@ class Hydrator
     }
 
     /**
+     * @param array $values
+     *
      * @return object
      */
-    public function create()
+    public function create(array $values = [])
     {
-        if (false == $this->prototypeModel) {
-            $this->prototypeModel = new $this->modelClass();
-
-            $this->hydrate([], $this->prototypeModel);
-        }
-
-        return clone $this->prototypeModel;
+        return $this->hydrate($values, build_object($this->modelClass, $values));
     }
 
     /**
@@ -46,7 +38,7 @@ class Hydrator
      */
     public function hydrate(array $values, $model = null)
     {
-        $model = $model ?: $this->create();
+        $model = $model ?: $this->create($values);
 
         if (isset($values['_id'])) {
             $values['_id'] = (string) $values['_id'];
