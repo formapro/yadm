@@ -12,6 +12,10 @@ class Converter
     {
         $update = ['$set' => [], '$unset' => []];
         foreach ($diff as $op) {
+            if (isset($op['path']) && '/_id' == $op['path']) {
+                continue;
+            }
+
             switch ($op['op']) {
                 case 'add':
                     if (is_array($op['value'])) {

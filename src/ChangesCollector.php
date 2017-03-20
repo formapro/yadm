@@ -1,39 +1,31 @@
 <?php
 namespace Makasim\Yadm;
 
-use function Makasim\Values\get_values;
 use mikemccabe\JsonPatch\JsonPatch;
 
 class ChangesCollector
 {
-    private $originalValues;
-
     public function register($object)
     {
-        if ($id = get_object_id($object)) {
-            $this->originalValues[$id] = get_values($object);
-        }
-    }
-
-    public function unregister($object)
-    {
-        if ($id = get_object_id($object)) {
-            unset($this->originalValues[$id]);
-        }
+        (function() {
+            $this->originalValues = $this->values;
+        })->call($object);
     }
 
     public function changes($object)
     {
-        if (false == $id = get_object_id($object)) {
-            throw new \LogicException(sprintf('Object does not have an id set.'));
-        }
+        return (function() {
+            $values = $this->values;
 
-        if (false == array_key_exists($id, $this->originalValues)) {
-            throw new \LogicException(sprintf('Changes has not been collected. The object with id "%s" original data is missing.'));
-        }
+            if (property_exists($this, 'originalValues')) {
+                $originalValues = $this->originalValues;
 
-        $diff = JsonPatch::diff($this->originalValues[$id], get_values($object));
+                $diff = JsonPatch::diff($originalValues, $values);
 
-        return Converter::convertJsonPatchToMongoUpdate($diff);
+                return Converter::convertJsonPatchToMongoUpdate($diff);
+            }
+
+            return ['$set' => $values];
+        })->call($object);
     }
 }

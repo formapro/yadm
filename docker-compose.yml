@@ -2,6 +2,7 @@ version: '2'
 services:
   yadm:
     image: formapro/nginx-php-fpm:latest-all-exts
+    working_dir: /yadm
     volumes:
       - ./:/yadm
     environment:
@@ -9,5 +10,5 @@ services:
 
   mongo:
     image: mongo:3
-    ports:
-      - "27017:27017"
+#    ports:
+#      - "27017:27017"

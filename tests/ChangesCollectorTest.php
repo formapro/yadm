@@ -12,9 +12,6 @@ use PHPUnit\Framework\TestCase;
 
 class ChangesCollectorTest extends TestCase
 {
-    /**
-     * @group d
-     */
     public function testShouldTrackSetValue()
     {
         $obj = $this->createPersistedObject();
@@ -23,7 +20,7 @@ class ChangesCollectorTest extends TestCase
         $collector->register($obj);
 
         set_value($obj, 'aKey', 'aVal');
-var_dump($collector->changes($obj));
+
         self::assertEquals([
             '$set' => [
                 'aKey' => 'aVal',
@@ -31,7 +28,7 @@ var_dump($collector->changes($obj));
         ], $collector->changes($obj));
     }
 
-    public function testShouldTrackAddedValue()
+    public function testShouldTrackAddedValueToEmptyCollection()
     {
         $obj = $this->createPersistedObject();
 
@@ -43,6 +40,52 @@ var_dump($collector->changes($obj));
         self::assertEquals([
             '$set' => [
                 'aKey.0' => 'aVal',
+            ],
+        ], $collector->changes($obj));
+    }
+
+    public function testShouldSkipMongoIdField()
+    {
+        $obj = $this->createPersistedObject();
+        set_value($obj, '_id',123);
+
+        $collector = new ChangesCollector();
+        $collector->register($obj);
+
+        set_value($obj, '_id',321);
+
+        self::assertEquals([], $collector->changes($obj));
+    }
+
+    public function testShouldUseWholeValuesIfNotRegistered()
+    {
+        $collector = new ChangesCollector();
+
+        $obj = new Object();
+        set_value($obj, 'foo','fooVal');
+        set_value($obj, 'bar.baz','barVal');
+
+        self::assertEquals([
+            '$set' => [
+                'foo' => 'fooVal',
+                'bar' => ['baz' => 'barVal'],
+            ],
+        ], $collector->changes($obj));
+    }
+
+    public function testShouldTrackAddedValue()
+    {
+        $obj = $this->createPersistedObject();
+        add_value($obj, 'aKey', 'anOldVal');
+
+        $collector = new ChangesCollector();
+        $collector->register($obj);
+
+        add_value($obj, 'aKey', 'aVal');
+
+        self::assertEquals([
+            '$set' => [
+                'aKey.1' => 'aVal',
             ],
         ], $collector->changes($obj));
     }
@@ -155,7 +198,7 @@ var_dump($collector->changes($obj));
     }
 
     /**
-     * @return Object
+     * @return object
      */
     private function createPersistedObject(array $values = [])
     {

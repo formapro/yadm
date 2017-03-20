@@ -141,10 +141,6 @@ class Storage
             throw new \LogicException('Operation is not acknowledged');
         }
 
-        // TODO remove id???
-
-        $this->changesCollector->unregister($model);
-
         return $result;
     }
 
