@@ -115,6 +115,9 @@ class Storage
         }
 
         $update = $this->changesCollector->changes($model);
+        if (empty($update)) {
+            return;
+        }
 
         $result = $this->collection->updateOne($filter, $update, $options);
         if (false == $result->isAcknowledged()) {
