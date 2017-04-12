@@ -106,7 +106,7 @@ class Storage
      * @param null|array $filter
      * @param array      $options
      *
-     * @return \MongoDB\UpdateResult
+     * @return \MongoDB\UpdateResult|null
      */
     public function update($model, $filter = null, array $options = [])
     {
@@ -115,6 +115,10 @@ class Storage
         }
 
         $update = $this->changesCollector->changes($model);
+
+        if (false == $update) {
+            return;
+        }
 
         $result = $this->collection->updateOne($filter, $update, $options);
         if (false == $result->isAcknowledged()) {
