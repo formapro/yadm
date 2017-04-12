@@ -115,6 +115,9 @@ class Storage
         }
 
         $update = $this->changesCollector->changes($model);
+        if (empty($update)) {
+            return;
+        }
 
         if (false == $update) {
             return;
