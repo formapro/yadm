@@ -4,23 +4,29 @@ use MongoDB\BSON\ObjectID;
 
 /**
  * @param object $object
+ * @param bool $orNull
  *
- * @return string
+ * @return ObjectID|null
  */
-function get_object_id($object)
+function get_object_id($object, $orNull = false)
 {
-    return (function () {
-        return (string) isset($this->values['_id']) ? $this->values['_id'] : null;
+    return (function () use ($orNull) {
+        $id = isset($this->_id) ? $this->_id : null;
+
+
+        if (false == $id && false == $orNull) {
+            throw new \LogicException('The object id is not set.');
+        }
+
+        return $id;
     })->call($object);
 }
 
 /**
- * @param object          $object
- * @param ObjectID|string $objectId
+ * @param object   $object
+ * @param ObjectID $id
  */
-function set_object_id($object, $objectId)
+function set_object_id($object, ObjectID $id)
 {
-    return (function () use ($objectId) {
-        $this->values['_id'] = (string) $objectId;
-    })->call($object);
+    (function () use ($id) { $this->_id = $id; })->call($object);
 }

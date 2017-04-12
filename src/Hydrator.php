@@ -3,6 +3,7 @@ namespace Makasim\Yadm;
 
 use function Makasim\Values\build_object;
 use function Makasim\Values\set_values;
+use MongoDB\BSON\ObjectID;
 
 class Hydrator
 {
@@ -41,7 +42,9 @@ class Hydrator
         $model = $model ?: $this->create($values);
 
         if (isset($values['_id'])) {
-            $values['_id'] = (string) $values['_id'];
+            set_object_id($model, new ObjectID((string) $values['_id']));
+
+            unset($values['_id']);
         }
 
         set_values($model, $values);

@@ -67,7 +67,7 @@ class Storage
             throw new \LogicException('Operation is not acknowledged');
         }
 
-        set_object_id($model, $result->getInsertedId());
+        set_object_id($model, new ObjectID((string) $result->getInsertedId()));
         $this->changesCollector->register($model);
 
         return $result;
@@ -111,7 +111,7 @@ class Storage
     public function update($model, $filter = null, array $options = [])
     {
         if (null === $filter) {
-            $filter = ['_id' => new ObjectID(get_object_id($model))];
+            $filter = ['_id' => get_object_id($model)];
         }
 
         $update = $this->changesCollector->changes($model);
@@ -119,13 +119,10 @@ class Storage
             return;
         }
 
-        if (false == $update) {
-            return;
-        }
-
         $result = $this->collection->updateOne($filter, $update, $options);
-        if (false == $result->isAcknowledged()) {
-            throw new \LogicException('Operation is not acknowledged');
+
+        if ($result->getUpsertedCount()) {
+            set_object_id($model, new ObjectID((string) $result->getUpsertedId()));
         }
 
         $this->changesCollector->register($model);
@@ -141,14 +138,7 @@ class Storage
      */
     public function delete($model, array $options = [])
     {
-        $modelId = new ObjectID(get_object_id($model));
-
-        $result = $this->collection->deleteOne(['_id' => $modelId], $options);
-        if (false == $result->isAcknowledged()) {
-            throw new \LogicException('Operation is not acknowledged');
-        }
-
-        return $result;
+        return $this->collection->deleteOne(['_id' => get_object_id($model)], $options);
     }
 
     /**

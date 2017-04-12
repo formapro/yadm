@@ -25,8 +25,6 @@ class ChangesCollector
                 return Converter::convertJsonPatchToMongoUpdate($diff);
             }
 
-            unset($values['_id']);
-
             return ['$set' => $values];
         })->call($object);
     }
