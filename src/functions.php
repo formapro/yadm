@@ -30,3 +30,11 @@ function set_object_id($object, ObjectID $id)
 {
     (function () use ($id) { $this->_id = $id; })->call($object);
 }
+
+/**
+ * @param object $object
+ */
+function unset_object_id($object)
+{
+    (function () { unset($this->_id); })->call($object);
+}
