@@ -194,6 +194,8 @@ class Storage
     /**
      * @param $id
      * @param callable $lockCallback
+     *
+     * @return mixed
      */
     public function lock($id, callable $lockCallback)
     {
@@ -202,10 +204,13 @@ class Storage
         }
 
         $this->pessimisticLock->lock($id);
+        $result = null;
         try {
             if ($model = $this->findOne(['_id' => new ObjectID((string) $id)])) {
-                call_user_func($lockCallback, $model, $this);
+                $result = call_user_func($lockCallback, $model, $this);
             }
+
+            return $result;
         } finally {
             $this->pessimisticLock->unlock($id);
         }
