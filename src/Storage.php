@@ -62,7 +62,7 @@ class Storage
     public function insert($model, array $options = [])
     {
 
-        $result = $this->collection->insertOne(get_values($model), $options);
+        $result = $this->collection->insertOne(get_values($model, false), $options);
         if (false == $result->isAcknowledged()) {
             throw new \LogicException('Operation is not acknowledged');
         }
@@ -83,7 +83,7 @@ class Storage
     {
         $data = [];
         foreach ($models as $key => $model) {
-            $data[$key] =get_values($model);
+            $data[$key] =get_values($model, false);
         }
 
         $result = $this->collection->insertMany($data, $options);

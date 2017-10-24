@@ -1,6 +1,7 @@
 <?php
 namespace Makasim\Yadm;
 
+use function Makasim\Values\get_values;
 use mikemccabe\JsonPatch\JsonPatch;
 
 class ChangesCollector
@@ -8,7 +9,7 @@ class ChangesCollector
     public function register($object)
     {
         (function() {
-            $this->originalValues = $this->values;
+            $this->originalValues = get_values($this, true);
         })->call($object);
     }
 
