@@ -1,7 +1,6 @@
 <?php
 namespace Makasim\Yadm;
 
-use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\UTCDatetime;
 use MongoDB\Collection;
 use MongoDB\Driver\Exception\BulkWriteException;
@@ -19,15 +18,16 @@ class PessimisticLock
      * @var string
      */
     private $sessionId;
-
     /**
-     * @param Collection $collection
-     * @param string $sessionId
+     * @var int
      */
-    public function __construct(Collection $collection, $sessionId = null)
+    private $limit;
+
+    public function __construct(Collection $collection, string $sessionId = null, int $limit = 300)
     {
         $this->collection = $collection;
         $this->sessionId = $sessionId ?: getmypid().'-'.(microtime(true)*10000);
+        $this->limit = $limit;
 
         register_shutdown_function(function () { $this->unlockAll(); });
     }
@@ -38,14 +38,16 @@ class PessimisticLock
      * @param string $id
      * @param int $limit
      */
-    public function lock($id, $limit = 300)
+    public function lock(string $id, int $limit = 300): void
     {
+        $this->createIndexes();
+
         $timeout = time() + $limit; // I think it must be a bit greater then mongos index ttl so there is a way to process data.
 
         while (time() < $timeout) {
             try {
                 $result = $this->collection->insertOne([
-                    '_id' => new ObjectID((string) $id),
+                    'id' => $id,
                     'timestamp' => new UTCDatetime(time() * 1000),
                     'sessionId' => $this->sessionId,
                 ]);
@@ -73,10 +75,10 @@ class PessimisticLock
     /**
      * @param string $id
      */
-    public function unlock($id)
+    public function unlock(string $id): void
     {
         $result = $this->collection->deleteOne([
-            '_id' => new ObjectID((string) $id),
+            'id' => $id,
             'sessionId' => $this->sessionId,
         ]);
 
@@ -103,6 +105,7 @@ class PessimisticLock
         } catch (RuntimeException $e) {
         }
 
+        $this->collection->createIndex(['id' => 1], ['unique' => true]);
         $this->collection->createIndex(['timestamp' => 1], ['expireAfterSeconds' => 302]);
         $this->collection->createIndex(['sessionId' => 1], ['unique' => false]);
     }

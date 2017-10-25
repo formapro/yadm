@@ -11,6 +11,7 @@ class Converter
     public static function convertJsonPatchToMongoUpdate(array $diff)
     {
         $update = ['$set' => [], '$unset' => []];
+
         foreach ($diff as $op) {
             if (isset($op['path']) && '/_id' == $op['path']) {
                 continue;
