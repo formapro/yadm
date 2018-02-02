@@ -4,6 +4,12 @@
 
 The schema less ODM. It gives you the fastest hydration and persistent. Based on [makasim/values](https://github.com/makasim/values) lib.
 
+## Install
+
+```bash
+$ composer require makasim/yadm "mikemccabe/json-patch-php:dev-master as 0.1.1"
+```
+
 ## Storage example
 
 ```php
