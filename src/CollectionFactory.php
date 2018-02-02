@@ -25,7 +25,7 @@ class CollectionFactory
     public function create(string $collectionName, string $databaseName = null, array $options = []): Collection
     {
        if (false == $databaseName) {
-           $databaseName = parse_url($this->mongoDsn, PHP_URL_PATH);
+           $databaseName = ltrim(parse_url($this->mongoDsn, PHP_URL_PATH), '/');
        }
 
        if (false == $databaseName) {
