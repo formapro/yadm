@@ -32,6 +32,6 @@ class CollectionFactory
            throw new \LogicException('Failed to guess database name, neither mongo DSN nor argument have it.');
        }
 
-       $this->mongodb->selectCollection($databaseName, $collectionName, $options);
+       return $this->mongodb->selectCollection($databaseName, $collectionName, $options);
     }
 }
