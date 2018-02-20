@@ -25,6 +25,8 @@ class Converter
                         }
 
                         $update['$push'][self::pathToDotWithoutLastPart($op['path'])]['$each'][] = $op['value'];
+                    } else if (is_array($op['value']) && array_key_exists(0, $op['value'])) {
+                        $update['$set'][self::pathToDot($op['path'])] = $op['value'];
                     } else if (is_array($op['value'])) {
                         foreach ($op['value'] as $key => $value) {
                             $update['$set'][self::pathToDot($op['path']) . '.' . $key] = $value;
