@@ -2,11 +2,12 @@
 namespace Makasim\Yadm\Tests;
 
 use function Makasim\Values\add_value;
+use function Makasim\Values\get_values;
 use function Makasim\Values\set_value;
 use function Makasim\Values\set_values;
 use Makasim\Yadm\ChangesCollector;
 use function Makasim\Yadm\set_object_id;
-use Makasim\Yadm\Tests\Model\Object;
+use Makasim\Yadm\Tests\Model\TestObject;
 use MongoDB\BSON\ObjectID;
 use PHPUnit\Framework\TestCase;
 
@@ -17,7 +18,7 @@ class ChangesCollectorTest extends TestCase
         $obj = $this->createPersistedObject();
 
         $collector = new ChangesCollector();
-        $collector->register($obj);
+        $collector->register($obj, get_values($obj));
 
         set_value($obj, 'aKey', 'aVal');
 
@@ -25,7 +26,9 @@ class ChangesCollectorTest extends TestCase
             '$set' => [
                 'aKey' => 'aVal',
             ],
-        ], $collector->changes($obj));
+        ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
+
+        // 417025ae3572262667ac5686ce5242722228d7011c335d62e760b5337f48db09
     }
 
     public function testShouldTrackAddedValueToEmptyCollection()
@@ -33,7 +36,7 @@ class ChangesCollectorTest extends TestCase
         $obj = $this->createPersistedObject();
 
         $collector = new ChangesCollector();
-        $collector->register($obj);
+        $collector->register($obj, get_values($obj));
 
         add_value($obj, 'aKey', 'aVal');
 
@@ -41,7 +44,7 @@ class ChangesCollectorTest extends TestCase
             '$set' => [
                 'aKey.0' => 'aVal',
             ],
-        ], $collector->changes($obj));
+        ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
 
     public function testShouldSkipMongoIdField()
@@ -50,18 +53,18 @@ class ChangesCollectorTest extends TestCase
         set_value($obj, '_id',123);
 
         $collector = new ChangesCollector();
-        $collector->register($obj);
+        $collector->register($obj, get_values($obj));
 
         set_value($obj, '_id',321);
 
-        self::assertEquals([], $collector->changes($obj));
+        self::assertEquals([], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
 
     public function testShouldUseWholeValuesIfNotRegistered()
     {
         $collector = new ChangesCollector();
 
-        $obj = new Object();
+        $obj = new TestObject();
         set_value($obj, 'foo','fooVal');
         set_value($obj, 'bar.baz','barVal');
 
@@ -70,7 +73,7 @@ class ChangesCollectorTest extends TestCase
                 'foo' => 'fooVal',
                 'bar' => ['baz' => 'barVal'],
             ],
-        ], $collector->changes($obj));
+        ], $collector->changes($obj, []));
     }
 
     public function testShouldTrackAddedValue()
@@ -79,7 +82,7 @@ class ChangesCollectorTest extends TestCase
         add_value($obj, 'aKey', 'anOldVal');
 
         $collector = new ChangesCollector();
-        $collector->register($obj);
+        $collector->register($obj, get_values($obj));
 
         add_value($obj, 'aKey', 'aVal');
 
@@ -87,7 +90,7 @@ class ChangesCollectorTest extends TestCase
             '$set' => [
                 'aKey.1' => 'aVal',
             ],
-        ], $collector->changes($obj));
+        ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
 
     public function testShouldNotTrackSetValueAndUnsetLater()
@@ -95,19 +98,19 @@ class ChangesCollectorTest extends TestCase
         $obj = $this->createPersistedObject();
 
         $collector = new ChangesCollector();
-        $collector->register($obj);
+        $collector->register($obj, get_values($obj));
 
         set_value($obj, 'aKey', 'aVal');
         set_value($obj, 'aKey', null);
 
-        self::assertEquals([], $collector->changes($obj));
+        self::assertEquals([], $collector->changes($obj, []));
     }
 
     public function testShouldTrackUnsetValue()
     {
         $obj = $this->createPersistedObject(['aKey' => 'aVal']);
         $collector = new ChangesCollector();
-        $collector->register($obj);
+        $collector->register($obj, get_values($obj));
 
         set_value($obj, 'aKey', null);
 
@@ -115,7 +118,7 @@ class ChangesCollectorTest extends TestCase
             '$unset' => [
                 'aKey' => '',
             ]
-        ], $collector->changes($obj));
+        ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
 
     public function testShouldTrackChangedValue()
@@ -123,7 +126,7 @@ class ChangesCollectorTest extends TestCase
         $obj = $this->createPersistedObject(['aKey' => 'aVal']);
 
         $collector = new ChangesCollector();
-        $collector->register($obj);
+        $collector->register($obj, get_values($obj));
 
         set_value($obj, 'aKey', 'aNewVal');
 
@@ -131,7 +134,7 @@ class ChangesCollectorTest extends TestCase
             '$set' => [
                 'aKey' => 'aNewVal',
             ],
-        ], $collector->changes($obj));
+        ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
 
     public function testShouldTrackStringValueChangedToArrayValue()
@@ -139,7 +142,7 @@ class ChangesCollectorTest extends TestCase
         $obj = $this->createPersistedObject(['aKey' => 'aVal']);
 
         $collector = new ChangesCollector();
-        $collector->register($obj);
+        $collector->register($obj, get_values($obj));
 
         set_value($obj, 'aKey.fooKey', 'aFooVal');
         set_value($obj, 'aKey.barKey', 'aBarVal');
@@ -151,7 +154,7 @@ class ChangesCollectorTest extends TestCase
                     'barKey' => 'aBarVal',
                 ],
             ],
-        ], $collector->changes($obj));
+        ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
 
     public function testShouldTrackArrayValueChangedToStringValue()
@@ -164,7 +167,7 @@ class ChangesCollectorTest extends TestCase
         ]);
 
         $collector = new ChangesCollector();
-        $collector->register($obj);
+        $collector->register($obj, get_values($obj));
 
         set_value($obj, 'aKey', 'aVal');
 
@@ -172,7 +175,7 @@ class ChangesCollectorTest extends TestCase
             '$set' => [
                 'aKey' => 'aVal',
             ],
-        ], $collector->changes($obj));
+        ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
 
     public function testShouldFoo()
@@ -182,7 +185,7 @@ class ChangesCollectorTest extends TestCase
         ]);
 
         $collector = new ChangesCollector();
-        $collector->register($obj);
+        $collector->register($obj, get_values($obj));
 
         set_value($obj, 'aKey', null);
         set_value($obj, 'anotherKey', 'aVal');
@@ -194,7 +197,7 @@ class ChangesCollectorTest extends TestCase
             '$unset' => [
                 'aKey' => '',
             ],
-        ], $collector->changes($obj));
+        ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
 
     /**
@@ -202,7 +205,7 @@ class ChangesCollectorTest extends TestCase
      */
     private function createPersistedObject(array $values = [])
     {
-        $obj = new Object();
+        $obj = new TestObject();
         set_values($obj, $values);
         set_object_id($obj, new ObjectID());
 

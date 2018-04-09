@@ -12,6 +12,78 @@ $ composer require makasim/yadm "mikemccabe/json-patch-php:dev-master as 0.1.1"
 
 ## Storage example
 
+Let's say we have an order model:
+
+```php
+<?php
+
+namespace Acme;
+
+use function Makasim\Values\set_value;
+use function Makasim\Values\get_value;
+
+class Price
+{
+    private $values = [];
+    
+    public function setCurrency(string $value): void
+    {
+        set_value($this, 'currency', $value);
+    }
+    
+    public function getCurrency(): string 
+    {
+        return get_value($this, 'currency');
+    }
+    
+    public function setAmount(int $value): void
+    {
+        set_value($this, 'amount', $value);
+    }
+    
+    public function getAmount(): string 
+    {
+        return get_value($this, 'amount');
+    }
+}
+```
+
+```php
+<?php
+namespace Acme;
+
+use function Makasim\Values\set_value;
+use function Makasim\Values\get_value;
+use function Makasim\Values\set_object;
+use function Makasim\Values\get_object;
+
+class Order
+{
+    private $values = [];
+    
+    public function setNumber(string $number): void
+    {
+        set_value($this, 'number', $number);
+    }
+    
+    public function getNumber(): string 
+    {
+        return get_value($this, 'number');
+    }
+    
+    public function setPrice(Price $price): void
+    {
+        set_object($this, 'price', $price);
+    }
+    
+    public function getPrice(): Price
+    {
+        return get_object($this, 'price', Price::class);
+    }
+}
+```
+
+
 ```php
 <?php
 namespace Acme;
@@ -24,8 +96,13 @@ $collection = (new Client())->selectCollection('acme_demo', 'orders');
 $hydrator = new Hydrator(Order::class);
 $storage = new Storage($collection, $hydrator);
 
+$price = new Price();
+$price->setAmount(123); # 1.23 USD
+$price->setCurrency('USD');
+
 $order = new Order();
 $order->setNumber(1234);
+$order->setPrice($price);
 
 $storage->insert($order);
 
@@ -44,13 +121,12 @@ $storage->delete($foundOrder);
 namespace Acme;
 
 use MongoDB\Client;
-use MongoDB\BSON\Binary;
 use Makasim\Yadm\Hydrator;
 use Makasim\Yadm\Storage;
 use Makasim\Yadm\ConvertValues;
 use Makasim\Yadm\Type\UuidType;
 use Makasim\Yadm\Type\UTCDatetimeType;
-use Ramsey\Uuid\Uuid;
+use Makasim\Yadm\Uuid;
 use function Makasim\Values\set_value;
 use function Makasim\Values\get_value;
 
@@ -65,7 +141,7 @@ $storage = new Storage($collection, $hydrator, null, null, $convertValues);
  
 
 $order = new Order();
-set_value($order, 'id', Uuid::uuid4()->toString());
+set_value($order, 'id', Uuid::generate()->toString());
 set_value($order, 'createdAt', (new \DateTime())->format('U'));
 
 $storage->insert($order);
@@ -73,13 +149,13 @@ $storage->insert($order);
 $id = get_value($order, 'id');
 
 // find by uuid
-$anotherOrder = $storage->findOne(['id' => new Binary(Uuid::fromString($id)->getBytes(), Binary::TYPE_UUID)]);
+$anotherOrder = $storage->findOne(['id' => new Uuid($id)]);
 
 // do not update id if not changed
 $storage->update($anotherOrder);
 
 // update on change
-set_value($anotherOrder, 'id', Uuid::uuid4()->toString());
+set_value($anotherOrder, 'id', Uuid::generate()->toString());
 $storage->update($anotherOrder);
 ```
 

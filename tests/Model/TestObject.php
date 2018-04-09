@@ -4,7 +4,7 @@ namespace Makasim\Yadm\Tests\Model;
 use Makasim\Values\ObjectsTrait;
 use Makasim\Values\ValuesTrait;
 
-class Object
+class TestObject
 {
     use ValuesTrait {
         getValue as public;

@@ -3,6 +3,8 @@ services:
   yadm:
     image: formapro/nginx-php-fpm:latest-all-exts
     working_dir: /yadm
+    depends_on:
+      - mongo
     volumes:
       - ./:/yadm
     environment:
