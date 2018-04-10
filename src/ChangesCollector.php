@@ -1,32 +1,32 @@
 <?php
 namespace Makasim\Yadm;
 
-use function Makasim\Values\get_values;
 use mikemccabe\JsonPatch\JsonPatch;
 
 class ChangesCollector
 {
-    public function register($object)
+    public function register($object, array $originalValues): void
     {
-        (function() {
-            $this->originalValues = get_values($this, true);
+        (function() use ($originalValues) {
+            $this->originalValues = $originalValues;
         })->call($object);
     }
 
-    public function changes($object)
+    public function getOriginalValues($object): ?array
     {
         return (function() {
-            $values = $this->values;
-
-            if (property_exists($this, 'originalValues')) {
-                $originalValues = $this->originalValues;
-
-                $diff = JsonPatch::diff($originalValues, $values);
-
-                return Converter::convertJsonPatchToMongoUpdate($diff);
-            }
-
-            return ['$set' => $values];
+            return property_exists($this, 'originalValues') ? $this->originalValues : null;
         })->call($object);
+    }
+
+    public function changes(array $values, array $originalValues = null): array
+    {
+        if (null !== $originalValues) {
+            $diff = JsonPatch::diff($originalValues, $values);
+
+            return Converter::convertJsonPatchToMongoUpdate($diff);
+        }
+
+        return ['$set' => $values];
     }
 }

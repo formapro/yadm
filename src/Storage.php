@@ -26,6 +26,10 @@ class Storage
      * @var PessimisticLock
      */
     private $pessimisticLock;
+    /**
+     * @var ConvertValues
+     */
+    private $convertValues;
 
     /**
      * @param Collection $collection
@@ -37,12 +41,15 @@ class Storage
         Collection $collection,
         Hydrator $hydrator,
         ChangesCollector $changesCollector = null,
-        PessimisticLock $pessimisticLock = null
+        PessimisticLock $pessimisticLock = null,
+        ConvertValues $convertValues = null
     ) {
         $this->collection = $collection;
         $this->hydrator = $hydrator;
-        $this->changesCollector = $changesCollector ?: new ChangesCollector();
         $this->pessimisticLock = $pessimisticLock;
+
+        $this->changesCollector = $changesCollector ?: new ChangesCollector();
+        $this->convertValues = $convertValues ?: new ConvertValues([]);
     }
 
     /**
@@ -61,14 +68,14 @@ class Storage
      */
     public function insert($model, array $options = [])
     {
-
-        $result = $this->collection->insertOne(get_values($model, false), $options);
+        $values = $this->convertValues->convertToMongoValues(get_values($model), []);
+        $result = $this->collection->insertOne($values, $options);
         if (false == $result->isAcknowledged()) {
             throw new \LogicException('Operation is not acknowledged');
         }
 
         set_object_id($model, new ObjectID((string) $result->getInsertedId()));
-        $this->changesCollector->register($model);
+        $this->changesCollector->register($model, $values);
 
         return $result;
     }
@@ -95,7 +102,7 @@ class Storage
             $this->hydrator->hydrate($data[$key], $models[$key]);
             set_object_id($models[$key], $modelId);
 
-            $this->changesCollector->register($models[$key]);
+            $this->changesCollector->register($models[$key], $data[$key]);
         }
 
         return $result;
@@ -114,7 +121,11 @@ class Storage
             $filter = ['_id' => get_object_id($model)];
         }
 
-        $update = $this->changesCollector->changes($model);
+        $originalValues = $this->changesCollector->getOriginalValues($model);
+        $values = $this->convertValues->convertToMongoValues(get_values($model, true), $originalValues);
+
+        $update = $this->changesCollector->changes($values, $originalValues);
+        var_dump($update);
         if (empty($update)) {
             return;
         }
@@ -137,7 +148,7 @@ class Storage
             set_object_id($model, new ObjectID((string) $result->getUpsertedId()));
         }
 
-        $this->changesCollector->register($model);
+        $this->changesCollector->register($model, $originalValues);
 
         return $result;
     }
@@ -163,10 +174,13 @@ class Storage
     {
         $options['typeMap'] = ['root' => 'array', 'document' => 'array', 'array' => 'array'];
 
-        if ($values = $this->collection->findOne($filter, $options)) {
+        if ($originalValues = $this->collection->findOne($filter, $options)) {
+            $values = $this->convertValues->convertToPHPValues($originalValues);
+
+
             $object = $this->hydrator->hydrate($values);
 
-            $this->changesCollector->register($object);
+            $this->changesCollector->register($object, $originalValues);
 
             return $object;
         }
@@ -183,10 +197,12 @@ class Storage
         $cursor = $this->collection->find($filter, $options);
         $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
 
-        foreach ($cursor as $values) {
+        foreach ($cursor as $originalValues) {
+            $values = $this->convertValues->convertToPHPValues($originalValues);
+
             $object = $this->hydrator->hydrate($values);
 
-            $this->changesCollector->register($object);
+            $this->changesCollector->register($object, $originalValues);
 
             yield $object;
         }

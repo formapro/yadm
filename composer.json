@@ -14,7 +14,7 @@
     "php": "^7.1",
     "mongodb/mongodb": "^1",
     "makasim/values": "^0.3.3",
-    "mikemccabe/json-patch-php": "^0.1"
+    "mikemccabe/json-patch-php": "dev-master"
   },
   "require-dev": {
     "phpunit/phpunit": "~6.0"
