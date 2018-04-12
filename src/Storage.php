@@ -125,7 +125,6 @@ class Storage
         $values = $this->convertValues->convertToMongoValues(get_values($model, true), $originalValues);
 
         $update = $this->changesCollector->changes($values, $originalValues);
-        var_dump($update);
         if (empty($update)) {
             return;
         }
