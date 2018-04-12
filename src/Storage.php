@@ -131,19 +131,21 @@ class Storage
 
         // mongodb's update cannot do a change of existing element and push a new one to a collection.
         $pushUpdate = [];
+        $result = null;
         if (array_key_exists('$push', $update)) {
             $pushUpdate['$push'] = $update['$push'];
-
             unset($update['$push']);
-        }
 
-        $result = $this->collection->updateOne($filter, $update, $options);
-
-        if ($pushUpdate) {
             $this->collection->updateOne($filter, $pushUpdate, $options);
+
+            if ($update) {
+                $result = $this->collection->updateOne($filter, $update, $options);
+            }
+        } else {
+            $result = $this->collection->updateOne($filter, $update, $options);
         }
 
-        if ($result->getUpsertedCount()) {
+        if ($result && $result->getUpsertedCount()) {
             set_object_id($model, new ObjectID((string) $result->getUpsertedId()));
         }
 
