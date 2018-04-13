@@ -45,9 +45,10 @@ class PessimisticLock
      * Limit is in seconds
      *
      * @param string $id
-     * @param int $limit
+     * @param bool $blocking
+     * @param int $limit is ignored if blocking is false.
      */
-    public function lock(string $id, int $limit = 300): void
+    public function lock(string $id, bool $blocking = true, int $limit = 300): void
     {
         $this->createIndexes();
 
@@ -69,6 +70,10 @@ class PessimisticLock
             } catch (BulkWriteException $e) {
             } catch (DuplicateKeyException $e) {
                 // The lock is obtained by another process. Let's try again later.
+            }
+
+            if (false == $blocking) {
+                throw PessimisticLockException::failedObtainLock($id, $limit);
             }
 
             // Mongo does database lock level on insert, so everything has to wait even reads.
