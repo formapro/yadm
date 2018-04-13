@@ -122,7 +122,7 @@ class Storage
         }
 
         $originalValues = $this->changesCollector->getOriginalValues($model);
-        $values = $this->convertValues->convertToMongoValues(get_values($model, true), $originalValues);
+        $values = $this->convertValues->convertToMongoValues(get_values($model, true), $originalValues ?: []);
 
         $update = $this->changesCollector->changes($values, $originalValues);
         if (empty($update)) {
@@ -149,7 +149,7 @@ class Storage
             set_object_id($model, new ObjectID((string) $result->getUpsertedId()));
         }
 
-        $this->changesCollector->register($model, $originalValues);
+        $this->changesCollector->register($model, $values ?: []);
 
         return $result;
     }
