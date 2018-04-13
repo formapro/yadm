@@ -18,6 +18,7 @@ class PessimisticLock
      * @var string
      */
     private $sessionId;
+
     /**
      * @var int
      */
@@ -26,10 +27,18 @@ class PessimisticLock
     public function __construct(Collection $collection, string $sessionId = null, int $limit = 300)
     {
         $this->collection = $collection;
-        $this->sessionId = $sessionId ?: getmypid().'-'.(microtime(true)*10000);
+        $this->sessionId = $sessionId ?: getmypid().'-'.(microtime(true) * 10000);
         $this->limit = $limit;
 
         register_shutdown_function(function () { $this->unlockAll(); });
+    }
+
+    public function locked(string $id): bool
+    {
+        return (bool) $result = $this->collection->count([
+            'id' => $id,
+            'sessionId' => ['$not' => $this->sessionId],
+        ]);
     }
 
     /**
@@ -69,7 +78,7 @@ class PessimisticLock
             usleep(200000);
         }
 
-        throw new \RuntimeException(sprintf('Cannot obtain the lock for id "%s". Timeout after %s seconds', $id, $limit));
+        throw PessimisticLockException::failedObtainLock($id, $limit);
     }
 
     /**
