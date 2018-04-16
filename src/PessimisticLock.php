@@ -18,6 +18,7 @@ class PessimisticLock
      * @var string
      */
     private $sessionId;
+
     /**
      * @var int
      */
@@ -26,19 +27,28 @@ class PessimisticLock
     public function __construct(Collection $collection, string $sessionId = null, int $limit = 300)
     {
         $this->collection = $collection;
-        $this->sessionId = $sessionId ?: getmypid().'-'.(microtime(true)*10000);
+        $this->sessionId = $sessionId ?: getmypid().'-'.(microtime(true) * 10000);
         $this->limit = $limit;
 
         register_shutdown_function(function () { $this->unlockAll(); });
+    }
+
+    public function locked(string $id): bool
+    {
+        return (bool) $result = $this->collection->count([
+            'id' => $id,
+            'sessionId' => ['$not' => $this->sessionId],
+        ]);
     }
 
     /**
      * Limit is in seconds
      *
      * @param string $id
-     * @param int $limit
+     * @param bool $blocking
+     * @param int $limit is ignored if blocking is false.
      */
-    public function lock(string $id, int $limit = 300): void
+    public function lock(string $id, bool $blocking = true, int $limit = 300): void
     {
         $this->createIndexes();
 
@@ -62,6 +72,10 @@ class PessimisticLock
                 // The lock is obtained by another process. Let's try again later.
             }
 
+            if (false == $blocking) {
+                throw PessimisticLockException::failedObtainLock($id, $limit);
+            }
+
             // Mongo does database lock level on insert, so everything has to wait even reads.
             // I decided to do it rarely to decrease global lock rate.
             // We will have at least 150 attempts to get the lock, pretty enough IMO.
@@ -69,7 +83,7 @@ class PessimisticLock
             usleep(200000);
         }
 
-        throw new \RuntimeException(sprintf('Cannot obtain the lock for id "%s". Timeout after %s seconds', $id, $limit));
+        throw PessimisticLockException::failedObtainLock($id, $limit);
     }
 
     /**
