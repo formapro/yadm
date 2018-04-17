@@ -69,6 +69,7 @@ class Storage
     public function insert($model, array $options = [])
     {
         $values = $this->convertValues->convertToMongoValues(get_values($model), []);
+
         $result = $this->collection->insertOne($values, $options);
         if (false == $result->isAcknowledged()) {
             throw new \LogicException('Operation is not acknowledged');
@@ -90,7 +91,7 @@ class Storage
     {
         $data = [];
         foreach ($models as $key => $model) {
-            $data[$key] =get_values($model, false);
+            $data[$key] = get_values($model, false);
         }
 
         $result = $this->collection->insertMany($data, $options);
