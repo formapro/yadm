@@ -1,7 +1,9 @@
 <?php
 namespace Makasim\Yadm;
 
+use function Makasim\Values\get_value;
 use function Makasim\Values\get_values;
+use function Makasim\Values\set_value;
 use MongoDB\BSON\ObjectID;
 use MongoDB\Collection;
 
@@ -122,12 +124,32 @@ class Storage
             $filter = ['_id' => get_object_id($model)];
         }
 
+        $useOptimisticLock = false;
+        if (isset($options['optimistic_lock']) && $options['optimistic_lock']) {
+            $useOptimisticLock = true;
+
+            if (false == $version = get_value($model, 'version', false)) {
+                throw new \LogicException('The optimistic lock has been requested but version field is not set on the model');
+            }
+
+            $filter = ['version' => $version];
+        }
+        unset($options['optimistic_lock']);
+
         $originalValues = $this->changesCollector->getOriginalValues($model);
         $values = $this->convertValues->convertToMongoValues(get_values($model, true), $originalValues ?: []);
 
         $update = $this->changesCollector->changes($values, $originalValues);
         if (empty($update)) {
             return;
+        }
+
+        if ($useOptimisticLock) {
+            if (false == isset($update['$inc'])) {
+                $update['$inc'] = [];
+            }
+
+            $update['$inc']['version'] = 1;
         }
 
         // mongodb's update cannot do a change of existing element and push a new one to a collection.
@@ -144,6 +166,14 @@ class Storage
             }
         } else {
             $result = $this->collection->updateOne($filter, $update, $options);
+        }
+
+        if ($useOptimisticLock && 0 === $result->getModifiedCount()) {
+            throw OptimisticLockException::lockFailed();
+        }
+
+        if ($useOptimisticLock) {
+            set_value($model, 'version', $version + 1);
         }
 
         if ($result && $result->getUpsertedCount()) {
