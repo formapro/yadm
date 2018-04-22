@@ -252,21 +252,33 @@ class Storage
     }
 
     /**
-     * @param $id
+     * @param object|ObjectID|string $id
      * @param callable $lockCallback
+     * @param bool $blocking
+     * @param int $limit
      *
      * @return mixed
      */
-    public function lock($id, callable $lockCallback)
+    public function lock($id, callable $lockCallback, bool $blocking = true, int $limit = 300)
     {
+        if (is_object($id)) {
+            $id = get_object_id($id);
+        } elseif ($id instanceof ObjectID) {
+            // do nothing
+        } elseif (is_string($id)) {
+            $id = new ObjectID((string) $id);
+        } else {
+            throw new \LogicException('The given id is not supported. Could be a model object, Mongo\'s ObjectID or a string model id.');
+        }
+
         if (false == $this->pessimisticLock) {
             throw new \LogicException('Cannot lock. The PessimisticLock instance is not injected');
         }
 
-        $this->pessimisticLock->lock($id);
+        $this->pessimisticLock->lock($id, $blocking, $limit);
         $result = null;
         try {
-            if ($model = $this->findOne(['_id' => new ObjectID((string) $id)])) {
+            if ($model = $this->findOne(['_id' => $id])) {
                 $result = call_user_func($lockCallback, $model, $this);
             }
 
