@@ -261,10 +261,10 @@ class Storage
      */
     public function lock($id, callable $lockCallback, bool $blocking = true, int $limit = 300)
     {
-        if (is_object($id)) {
-            $id = get_object_id($id);
-        } elseif ($id instanceof ObjectID) {
+        if ($id instanceof ObjectID) {
             // do nothing
+        } elseif (is_object($id)) {
+            $id = get_object_id($id);
         } elseif (is_string($id)) {
             $id = new ObjectID((string) $id);
         } else {
