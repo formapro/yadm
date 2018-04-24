@@ -161,4 +161,12 @@ class PessimisticLock
             $this->collection->createIndex(['sessionId' => 1], ['unique' => false, 'name' => 'sessionId']);
         }
     }
+
+    /**
+     * @return Collection
+     */
+    public function getCollection(): Collection
+    {
+        return $this->collection;
+    }
 }
