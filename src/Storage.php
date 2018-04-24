@@ -291,8 +291,16 @@ class Storage
     /**
      * @return Collection
      */
-    public function getCollection()
+    public function getCollection(): Collection
     {
         return $this->collection;
+    }
+
+    /**
+     * @return PessimisticLock
+     */
+    public function getPessimisticLock(): ?PessimisticLock
+    {
+        return $this->pessimisticLock;
     }
 }

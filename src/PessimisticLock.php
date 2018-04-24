@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Makasim\Yadm;
 
 use MongoDB\BSON\UTCDatetime;
@@ -24,13 +26,21 @@ class PessimisticLock
      */
     private $limit;
 
+    private $autoCreateIndexes;
+
     public function __construct(Collection $collection, string $sessionId = null, int $limit = 300)
     {
         $this->collection = $collection;
         $this->sessionId = $sessionId ?: getmypid().'-'.(microtime(true) * 10000);
         $this->limit = $limit;
+        $this->autoCreateIndexes = true;
 
         register_shutdown_function(function () { $this->unlockAll(); });
+    }
+
+    public function autoCreateIndexes(bool $bool): void
+    {
+        $this->autoCreateIndexes = $bool;
     }
 
     public function locked(string $id): bool
@@ -50,7 +60,11 @@ class PessimisticLock
      */
     public function lock(string $id, bool $blocking = true, int $limit = 300): void
     {
-        $this->createIndexes();
+        $this->autoCreateIndexes && $this->createIndexes();
+
+        if ($limit > $this->limit) {
+            throw new \LogicException('The limit could not be greater than a default one. The default is used to set an expiration index');
+        }
 
         $timeout = time() + $limit; // I think it must be a bit greater then mongos index ttl so there is a way to process data.
 
@@ -101,7 +115,7 @@ class PessimisticLock
         }
     }
 
-    public function unlockAll()
+    public function unlockAll(): void
     {
         $result = $this->collection->deleteMany([
             'sessionId' => $this->sessionId,
@@ -112,15 +126,39 @@ class PessimisticLock
         }
     }
 
-    public function createIndexes()
+    public function dropIndexes()
     {
         try {
             $this->collection->dropIndexes();
         } catch (RuntimeException $e) {
         }
+    }
 
-        $this->collection->createIndex(['id' => 1], ['unique' => true]);
-        $this->collection->createIndex(['timestamp' => 1], ['expireAfterSeconds' => 302]);
-        $this->collection->createIndex(['sessionId' => 1], ['unique' => false]);
+    public function createIndexes(int $lockExpireAfterSeconds = null): void
+    {
+        if (null === $lockExpireAfterSeconds) {
+            $lockExpireAfterSeconds = $this->limit + 2;
+        }
+
+        if ($lockExpireAfterSeconds <= $this->limit) {
+            throw new \LogicException('The expiration could not be lesser than default limit');
+        }
+
+        $existingIndexes = [];
+        foreach ($this->collection->listIndexes() as $index) {
+            $existingIndexes[$index->getName()] = $index->getName();
+        }
+
+        if (empty($existingIndexes['id'])) {
+            $this->collection->createIndex(['id' => 1], ['unique' => true, 'name' => 'id']);
+        }
+
+        if (empty($existingIndexes['timestamp'])) {
+            $this->collection->createIndex(['timestamp' => 1], ['expireAfterSeconds' => $lockExpireAfterSeconds, 'name' => 'timestamp']);
+        }
+
+        if (empty($existingIndexes['sessionId'])) {
+            $this->collection->createIndex(['sessionId' => 1], ['unique' => false, 'name' => 'sessionId']);
+        }
     }
 }
