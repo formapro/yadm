@@ -24,7 +24,7 @@ class ChangesCollector
         if (null !== $originalValues) {
             $diff = JsonPatch::diff($originalValues, $values);
 
-            return Converter::convertJsonPatchToMongoUpdate($diff);
+            return Converter::convertJsonPatchToMongoUpdate($diff, $values);
         }
 
         return ['$set' => $values];

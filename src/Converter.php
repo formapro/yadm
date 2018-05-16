@@ -1,6 +1,8 @@
 <?php
 namespace Makasim\Yadm;
 
+use function Makasim\Values\array_get;
+
 class Converter
 {
     /**
@@ -8,14 +10,18 @@ class Converter
      * 
      * @return array
      */
-    public static function convertJsonPatchToMongoUpdate(array $diff)
+    public static function convertJsonPatchToMongoUpdate(array $diff, array $values)
     {
-        $update = ['$set' => [], '$unset' => []];
+        $update = ['$set' => [], '$unset' => [], '$push' => []];
+
+        $arrayFullReset = [];
 
         foreach ($diff as $op) {
             if (isset($op['path']) && '/_id' == $op['path']) {
                 continue;
             }
+
+
 
             switch ($op['op']) {
                 case 'add':
@@ -37,7 +43,19 @@ class Converter
 
                     break;
                 case 'remove':
-                    $update['$unset'][self::pathToDot($op['path'])] = '';
+                    // fix for  https://jira.mongodb.org/browse/SERVER-1014
+                    if (static::isPathArray($op['path'])) {
+                        $dotPath = self::pathToDotWithoutLastPart($op['path']);
+                        if (array_key_exists($dotPath, $arrayFullReset)) {
+                            continue;
+                        }
+
+                        $update['$set'][$dotPath] = array_get($dotPath, [], $values);
+
+                        $arrayFullReset[$dotPath] = true;
+                    } else {
+                        $update['$unset'][self::pathToDot($op['path'])] = '';
+                    }
 
                     break;
                 case 'replace':
@@ -47,8 +65,26 @@ class Converter
                 default:
                     throw new \LogicException('JSON Patch operation "'.$op['op'].'"" is not supported.');
             }
+        }
 
+        foreach (array_keys($arrayFullReset) as $arrayResetPath) {
+            foreach (array_keys($update['$set']) as $setPath) {
+                if ($setPath === $arrayResetPath) {
+                    continue;
+                }
 
+                if (0 === strpos($setPath, $arrayResetPath)) {
+                    unset($update['$set'][$setPath]);
+                }
+            }
+        }
+
+        foreach (array_keys($arrayFullReset) as $arrayResetPath) {
+            foreach (array_keys($update['$unset']) as $setPath) {
+                if (0 === strpos($setPath, $arrayResetPath)) {
+                    unset($update['$unset'][$setPath]);
+                }
+            }
         }
 
         if (empty($update['$push'])) {
