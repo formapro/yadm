@@ -132,7 +132,7 @@ class Storage
                 throw new \LogicException('The optimistic lock has been requested but version field is not set on the model');
             }
 
-            $filter = ['version' => $version];
+            $filter = array_merge($filter, ['version' => $version]);
         }
         unset($options['optimistic_lock']);
 
