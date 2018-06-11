@@ -1,7 +1,7 @@
 <?php
 namespace Makasim\Yadm;
 
-class StorageMeta
+class StorageMeta implements StorageMetaInterface
 {
     /**
      * @return Index[]
