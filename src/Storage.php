@@ -28,10 +28,16 @@ class Storage
      * @var PessimisticLock
      */
     private $pessimisticLock;
+
     /**
      * @var ConvertValues
      */
     private $convertValues;
+
+    /**
+     * @var StorageMeta
+     */
+    private $storageMeta;
 
     /**
      * @param Collection $collection
@@ -44,7 +50,8 @@ class Storage
         Hydrator $hydrator,
         ChangesCollector $changesCollector = null,
         PessimisticLock $pessimisticLock = null,
-        ConvertValues $convertValues = null
+        ConvertValues $convertValues = null,
+        StorageMeta $storageMeta = null
     ) {
         $this->collection = $collection;
         $this->hydrator = $hydrator;
@@ -52,6 +59,7 @@ class Storage
 
         $this->changesCollector = $changesCollector ?: new ChangesCollector();
         $this->convertValues = $convertValues ?: new ConvertValues([]);
+        $this->storageMeta = $storageMeta ?: new StorageMeta();
     }
 
     /**
@@ -286,6 +294,11 @@ class Storage
         } finally {
             $this->pessimisticLock->unlock($id);
         }
+    }
+
+    public function getMeta(): StorageMeta
+    {
+        return $this->storageMeta;
     }
 
     /**
