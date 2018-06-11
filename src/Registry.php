@@ -32,6 +32,23 @@ class Registry
     }
 
     /**
+     * @return Storage[]|array
+     */
+    public function getUniqueStorages()
+    {
+        $uniqueStorages = [];
+        foreach ($this->storages as $storage) {
+            if (isset($uniqueStorages[$storage->getCollection()->getCollectionName()])) {
+                continue;
+            }
+
+            $uniqueStorages[$storage->getCollection()->getCollectionName()] = $storage;
+        }
+
+        return $uniqueStorages;
+    }
+
+    /**
      * @param object|string $modelOrClass
      *
      * @return Storage
