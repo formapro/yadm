@@ -35,23 +35,17 @@ class Storage
     private $convertValues;
 
     /**
-     * @var StorageMeta
+     * @var StorageMetaInterface
      */
     private $storageMeta;
 
-    /**
-     * @param Collection $collection
-     * @param Hydrator $hydrator
-     * @param ChangesCollector $changesCollector
-     * @param PessimisticLock|null $pessimisticLock
-     */
     public function __construct(
         Collection $collection,
         Hydrator $hydrator,
         ChangesCollector $changesCollector = null,
         PessimisticLock $pessimisticLock = null,
         ConvertValues $convertValues = null,
-        StorageMeta $storageMeta = null
+        StorageMetaInterface $storageMeta = null
     ) {
         $this->collection = $collection;
         $this->hydrator = $hydrator;
@@ -296,7 +290,7 @@ class Storage
         }
     }
 
-    public function getMeta(): StorageMeta
+    public function getMeta(): StorageMetaInterface
     {
         return $this->storageMeta;
     }
