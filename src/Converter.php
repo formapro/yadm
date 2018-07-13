@@ -21,8 +21,6 @@ class Converter
                 continue;
             }
 
-
-
             switch ($op['op']) {
                 case 'add':
                     if (static::isPathArray($op['path'])) {
@@ -75,6 +73,14 @@ class Converter
 
                 if (0 === strpos($setPath, $arrayResetPath)) {
                     unset($update['$set'][$setPath]);
+                }
+            }
+        }
+
+        foreach (array_keys($arrayFullReset) as $arrayResetPath) {
+            foreach (array_keys($update['$push']) as $pushPath) {
+                if (0 === strpos($pushPath, $arrayResetPath)) {
+                    unset($update['$push'][$pushPath]);
                 }
             }
         }
