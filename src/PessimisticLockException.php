@@ -1,5 +1,5 @@
 <?php
-namespace Makasim\Yadm;
+namespace Formapro\Yadm;
 
 class PessimisticLockException extends \LogicException
 {

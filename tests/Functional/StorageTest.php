@@ -1,9 +1,9 @@
 <?php
-namespace Makasim\Yadm\Tests\Functional;
+namespace Formapro\Yadm\Tests\Functional;
 
-use Makasim\Yadm\Hydrator;
-use Makasim\Yadm\PessimisticLock;
-use Makasim\Yadm\Storage;
+use Formapro\Yadm\Hydrator;
+use Formapro\Yadm\PessimisticLock;
+use Formapro\Yadm\Storage;
 use MongoDB\BSON\ObjectID;
 use MongoDB\InsertOneResult;
 

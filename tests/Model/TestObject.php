@@ -1,8 +1,8 @@
 <?php
-namespace Makasim\Yadm\Tests\Model;
+namespace Formapro\Yadm\Tests\Model;
 
-use Makasim\Values\ObjectsTrait;
-use Makasim\Values\ValuesTrait;
+use Formapro\Values\ObjectsTrait;
+use Formapro\Values\ValuesTrait;
 
 class TestObject
 {

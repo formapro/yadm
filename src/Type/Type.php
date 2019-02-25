@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Makasim\Yadm\Type;
+namespace Formapro\Yadm\Type;
 
 interface Type
 {

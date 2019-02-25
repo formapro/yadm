@@ -1,8 +1,8 @@
 <?php
-namespace Makasim\Yadm;
+namespace Formapro\Yadm;
 
-use function Makasim\Values\build_object;
-use function Makasim\Values\set_values;
+use function Formapro\Values\build_object;
+use function Formapro\Values\set_values;
 use MongoDB\BSON\ObjectID;
 
 class Hydrator
