@@ -1,5 +1,5 @@
 <?php
-namespace Makasim\Yadm;
+namespace Formapro\Yadm;
 
 class StorageMeta implements StorageMetaInterface
 {

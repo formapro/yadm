@@ -1,5 +1,5 @@
 <?php
-namespace Makasim\Yadm;
+namespace Formapro\Yadm;
 
 /**
  * An OptimisticLockException is thrown when a version check on an object

@@ -1,7 +1,7 @@
 <?php
-namespace Makasim\Yadm;
+namespace Formapro\Yadm;
 
-use function Makasim\Values\array_get;
+use function Formapro\Values\array_get;
 
 class Converter
 {

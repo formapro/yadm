@@ -1,5 +1,5 @@
 <?php
-namespace Makasim\Yadm\Tests\Functional;
+namespace Formapro\Yadm\Tests\Functional;
 
 use MongoDB\Client;
 use MongoDB\Database;

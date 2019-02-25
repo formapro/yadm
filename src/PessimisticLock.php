@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Makasim\Yadm;
+namespace Formapro\Yadm;
 
 use MongoDB\BSON\UTCDatetime;
 use MongoDB\Collection;

@@ -1,8 +1,8 @@
 <?php
-namespace Makasim\Yadm;
+namespace Formapro\Yadm;
 
-use function Makasim\Values\array_set;
-use Makasim\Yadm\Type\Type;
+use function Formapro\Values\array_set;
+use Formapro\Yadm\Type\Type;
 
 class ConvertValues
 {

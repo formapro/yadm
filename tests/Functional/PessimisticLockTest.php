@@ -1,7 +1,7 @@
 <?php
-namespace Makasim\Yadm\Tests\Functional;
+namespace Formapro\Yadm\Tests\Functional;
 
-use Makasim\Yadm\PessimisticLock;
+use Formapro\Yadm\PessimisticLock;
 
 class PessimisticLockTest extends FunctionalTest
 {

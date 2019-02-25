@@ -1,5 +1,5 @@
 {
-  "name": "makasim/yadm",
+  "name": "formapro/yadm",
   "type": "library",
   "description": "The fastest MongoDB object document mapper.",
   "keywords": ["model", "mongodb", "odm", "storage"],
@@ -13,7 +13,7 @@
   "require": {
     "php": "^7.1",
     "mongodb/mongodb": "^1",
-    "makasim/values": "^0.5",
+    "formapro/values": "^0.5",
     "mikemccabe/json-patch-php": "dev-master"
   },
   "require-dev": {
@@ -23,11 +23,11 @@
     "bin-dir": "bin"
   },
   "autoload": {
-    "psr-4": { "Makasim\\Yadm\\": "src" },
+    "psr-4": { "Formapro\\Yadm\\": "src" },
     "files": ["src/functions_include.php"]
   },
   "autoload-dev": {
-    "psr-4": { "Makasim\\Yadm\\Tests\\": "tests" }
+    "psr-4": { "Formapro\\Yadm\\Tests\\": "tests" }
   },
   "extra": {
     "branch-alias": {

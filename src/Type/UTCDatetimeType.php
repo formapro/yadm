@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Makasim\Yadm\Type;
+namespace Formapro\Yadm\Type;
 
-use function Makasim\Values\array_get;
+use function Formapro\Values\array_get;
 use MongoDB\BSON\UTCDateTime;
 
 class UTCDatetimeType implements Type

@@ -1,5 +1,5 @@
 <?php
-namespace Makasim\Yadm;
+namespace Formapro\Yadm;
 
 use MongoDB\Client;
 use MongoDB\Collection;
