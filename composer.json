@@ -13,7 +13,7 @@
   "require": {
     "php": "^7.1",
     "mongodb/mongodb": "^1",
-    "formapro/values": "^0.5",
+    "formapro/values": "^0.5.1",
     "mikemccabe/json-patch-php": "dev-master"
   },
   "require-dev": {
