@@ -53,7 +53,14 @@ class Storage
 
         $this->changesCollector = $changesCollector ?: new ChangesCollector();
         $this->convertValues = $convertValues ?: new ConvertValues([]);
-        $this->storageMeta = $storageMeta ?: new StorageMeta();
+        
+        if ($storageMeta) {
+            $this->storageMeta = $storageMeta;
+        } elseif ($storageMeta === null && $this instanceof StorageMetaInterface) {
+            $this->storageMeta = $this;
+        } else {
+            $this->storageMeta = new StorageMeta();    
+        }
     }
 
     /**

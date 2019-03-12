@@ -3,8 +3,10 @@ namespace Formapro\Yadm;
 
 use MongoDB\BSON\Binary;
 
-class Uuid extends Binary
+class Uuid
 {
+    private $binary;
+    
     public function __construct($data)
     {
         if (is_string($data) && false !== strpos($data, '-')) {
@@ -15,7 +17,22 @@ class Uuid extends Binary
             $bytes = $data;
         }
 
-        parent::__construct($bytes, Binary::TYPE_UUID);
+        $this->binary = new Binary($bytes, Binary::TYPE_UUID);
+    }
+    
+    public function getBinary(): Binary
+    {
+        return $this->binary;
+    }
+
+    public function getData()
+    {
+        return $this->binary->getData();
+    }
+
+    public function getType()
+    {
+        return $this->binary->getType();
     }
 
     public function toString(): string
@@ -32,5 +49,4 @@ class Uuid extends Binary
     {
         return new static (\Ramsey\Uuid\Uuid::uuid4()->getBytes());
     }
-
 }
