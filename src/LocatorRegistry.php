@@ -6,9 +6,15 @@ use Psr\Container\ContainerInterface;
 class LocatorRegistry implements Registry
 {
     private $container;
+    
+    private $storageIds;
 
-    public function __construct(ContainerInterface $container)
+    /**
+     * @param string[] $storageIds
+     */
+    public function __construct(array $storageIds, ContainerInterface $container)
     {
+        $this->storageIds = $storageIds;
         $this->container = $container;
     }
 
@@ -18,7 +24,7 @@ class LocatorRegistry implements Registry
     public function getStorages(): array
     {
         $uniqueStorages = [];
-        foreach (array_keys($this->storages) as $storageId) {
+        foreach ($this->storageIds as $storageId) {
             $storage = $this->getStorage($storageId);
 
             if (isset($uniqueStorages[$storage->getCollection()->getCollectionName()])) {

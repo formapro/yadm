@@ -7,18 +7,18 @@ use MongoDB\Collection;
 class CollectionFactory
 {
     /**
-     * @var Client
+     * @var ClientProvider
      */
-    private $mongodb;
+    private $clientProvider;
 
     /**
      * @var string
      */
     private $mongoDsn;
 
-    public function __construct(Client $mongodb, string $mongoDsn)
+    public function __construct(ClientProvider $clientProvider, string $mongoDsn)
     {
-        $this->mongodb = $mongodb;
+        $this->clientProvider = $clientProvider;
         $this->mongoDsn = $mongoDsn;
     }
 
@@ -32,6 +32,8 @@ class CollectionFactory
            throw new \LogicException('Failed to guess database name, neither mongo DSN nor argument have it.');
        }
 
-       return $this->mongodb->selectCollection($databaseName, $collectionName, $options);
+       $client = $this->clientProvider->getClient();
+
+       return $client->selectCollection($databaseName, $collectionName, $options);
     }
 }
