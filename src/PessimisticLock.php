@@ -9,7 +9,7 @@ use MongoDB\Driver\Exception\BulkWriteException;
 use MongoDB\Driver\Exception\DuplicateKeyException;
 use MongoDB\Driver\Exception\RuntimeException;
 
-class PessimisticLock
+class PessimisticLock implements StorageMetaInterface
 {
     /**
      * @var Collection
@@ -148,18 +148,31 @@ class PessimisticLock
         foreach ($this->collection->listIndexes() as $index) {
             $existingIndexes[$index->getName()] = $index->getName();
         }
-
-        if (empty($existingIndexes['id'])) {
-            $this->collection->createIndex(['id' => 1], ['unique' => true, 'name' => 'id']);
+        
+        foreach ($this->getIndexes() as $index) {
+            if (empty($index->getOptions()['name'])) {
+                $this->collection->createIndex($index->getKey(), $index->getOptions());
+            }
         }
+    }
 
-        if (empty($existingIndexes['timestamp'])) {
-            $this->collection->createIndex(['timestamp' => 1], ['expireAfterSeconds' => $lockExpireAfterSeconds, 'name' => 'timestamp']);
-        }
+    /**
+     * @return Index[]
+     */
+    public function getIndexes(): array
+    {
+        $lockExpireAfterSeconds = $this->limit + 2;
+        
+        return [
+            new Index(['id' => 1], ['unique' => true, 'name' => 'id']),
+            new Index(['timestamp' => 1], ['expireAfterSeconds' => $lockExpireAfterSeconds, 'name' => 'timestamp']),
+            new Index(['sessionId' => 1], ['unique' => false, 'name' => 'sessionId'])
+        ];
+    }
 
-        if (empty($existingIndexes['sessionId'])) {
-            $this->collection->createIndex(['sessionId' => 1], ['unique' => false, 'name' => 'sessionId']);
-        }
+    public function getCreateCollectionOptions(): array
+    {
+        return [];
     }
 
     /**
