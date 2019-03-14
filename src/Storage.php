@@ -195,6 +195,20 @@ class Storage
     }
 
     /**
+     * @param object     $model
+     * @param null|array $filter
+     * @param array      $options
+     *
+     * @return \MongoDB\UpdateResult|null
+     */
+    public function replace($model, array $options = [])
+    {
+        $filter = ['_id' => get_object_id($model)];
+        
+        return $this->getCollection()->replaceOne($filter, get_values($model), $options);
+    }
+
+    /**
      * @param object $model
      * @param array  $options
      *
