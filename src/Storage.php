@@ -262,6 +262,11 @@ class Storage
             yield $object;
         }
     }
+    
+    public function register($object, array $originalValues)
+    {
+        $this->changesCollector->register($object, $originalValues);
+    }
 
     /**
      * @param array $filter
