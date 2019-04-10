@@ -336,4 +336,19 @@ class Storage
     {
         return $this->pessimisticLock;
     }
+
+    protected function getHydrator(): Hydrator
+    {
+        return $this->hydrator;
+    }
+
+    protected function getChangesCollector(): ChangesCollector
+    {
+        return $this->changesCollector;
+    }
+
+    protected function getConvertValues(): ConvertValues
+    {
+        return $this->convertValues;
+    }
 }
