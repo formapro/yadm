@@ -45,7 +45,7 @@ class Converter
                     if (static::isPathArray($op['path'])) {
                         $dotPath = self::pathToDotWithoutLastPart($op['path']);
                         if (array_key_exists($dotPath, $arrayFullReset)) {
-                            continue;
+                            continue 2;
                         }
 
                         $update['$set'][$dotPath] = array_get($dotPath, [], $values);
