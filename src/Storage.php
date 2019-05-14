@@ -9,45 +9,33 @@ use MongoDB\Collection;
 
 class Storage
 {
-    /**
-     * @var Collection
-     */
-    private $collection;
+    private $collectionName;
 
-    /**
-     * @var Hydrator
-     */
+    private $collectionFactory;
+
     private $hydrator;
 
-    /**
-     * @var ChangesCollector
-     */
     private $changesCollector;
 
-    /**
-     * @var PessimisticLock
-     */
     private $pessimisticLock;
 
-    /**
-     * @var ConvertValues
-     */
     private $convertValues;
 
-    /**
-     * @var StorageMetaInterface
-     */
     private $storageMeta;
 
+    private $collection;
+
     public function __construct(
-        Collection $collection,
+        string $collectionName,
+        CollectionFactory $collectionFactory,
         Hydrator $hydrator,
         ChangesCollector $changesCollector = null,
         PessimisticLock $pessimisticLock = null,
         ConvertValues $convertValues = null,
         StorageMetaInterface $storageMeta = null
     ) {
-        $this->collection = $collection;
+        $this->collectionName = $collectionName;
+        $this->collectionFactory = $collectionFactory;
         $this->hydrator = $hydrator;
         $this->pessimisticLock = $pessimisticLock;
 
@@ -81,7 +69,7 @@ class Storage
     {
         $values = $this->convertValues->convertToMongoValues(get_values($model), []);
 
-        $result = $this->collection->insertOne($values, $options);
+        $result = $this->getCollection()->insertOne($values, $options);
         if (false == $result->isAcknowledged()) {
             throw new \LogicException('Operation is not acknowledged');
         }
@@ -105,7 +93,7 @@ class Storage
             $data[$key] = get_values($model, false);
         }
 
-        $result = $this->collection->insertMany($data, $options);
+        $result = $this->getCollection()->insertMany($data, $options);
         if (false == $result->isAcknowledged()) {
             throw new \LogicException('Operation is not acknowledged');
         }
@@ -168,13 +156,13 @@ class Storage
             $pushUpdate['$push'] = $update['$push'];
             unset($update['$push']);
 
-            $this->collection->updateOne($filter, $pushUpdate, $options);
+            $this->getCollection()->updateOne($filter, $pushUpdate, $options);
 
             if ($update) {
-                $result = $this->collection->updateOne($filter, $update, $options);
+                $result = $this->getCollection()->updateOne($filter, $update, $options);
             }
         } else {
-            $result = $this->collection->updateOne($filter, $update, $options);
+            $result = $this->getCollection()->updateOne($filter, $update, $options);
         }
 
         if ($useOptimisticLock && 0 === $result->getModifiedCount()) {
@@ -216,7 +204,7 @@ class Storage
      */
     public function delete($model, array $options = [])
     {
-        return $this->collection->deleteOne(['_id' => get_object_id($model)], $options);
+        return $this->getCollection()->deleteOne(['_id' => get_object_id($model)], $options);
     }
 
     /**
@@ -229,7 +217,7 @@ class Storage
     {
         $options['typeMap'] = ['root' => 'array', 'document' => 'array', 'array' => 'array'];
 
-        if ($originalValues = $this->collection->findOne($filter, $options)) {
+        if ($originalValues = $this->getCollection()->findOne($filter, $options)) {
             $values = $this->convertValues->convertToPHPValues($originalValues);
 
 
@@ -249,7 +237,7 @@ class Storage
      */
     public function find(array $filter = [], array $options = [])
     {
-        $cursor = $this->collection->find($filter, $options);
+        $cursor = $this->getCollection()->find($filter, $options);
         $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
 
         foreach ($cursor as $originalValues) {
@@ -276,7 +264,7 @@ class Storage
      */
     public function count(array $filter = [], array $options = [])
     {
-        return $this->collection->count($filter, $options);
+        return $this->getCollection()->count($filter, $options);
     }
 
     /**
@@ -326,6 +314,10 @@ class Storage
      */
     public function getCollection(): Collection
     {
+        if (null === $this->collection) {
+            $this->collection = $this->collectionFactory->create($this->collectionName);
+        }
+
         return $this->collection;
     }
 
