@@ -40,7 +40,7 @@ class LocatorRegistry implements Registry
     public function getStorage(string $name): Storage
     {
         if (false == $this->container->has($name)) {
-            throw new \InvalidArgumentException(sprintf('The storage with name "%s" does not exist', $id));
+            throw new \InvalidArgumentException(sprintf('The storage with name "%s" does not exist', $name));
         }
 
         return $this->container->get($name);
